@@ -8,8 +8,8 @@ for PC and FPGA.
 
 ## History
 
-Back in 1992 the original [Berkeley Packet Filter (BPF)]
-(http://www.tcpdump.org/papers/bpf-usenix93.pdf) was designed
+Back in 1992 the original [Berkeley Packet Filter (BPF)](http://www.tcpdump.org/papers/bpf-usenix93.pdf)
+was designed
 for capturing and filtering network packets that matched
 specific rules. Filters are implemented as programs to be run
 on a register-based virtual RISC machine providing a small
