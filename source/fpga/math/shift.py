@@ -39,26 +39,6 @@ class Shifter(Module):
                 ),
                 state.eq(1)
             )
-
-            # If(stb,
-            #     If(~ack,
-            #         If(~step,
-            #             tmp1.eq(~(Replicate(1, data_width) >> shift)),
-            #             tmp2.eq(value >> shift),
-            #             step.eq(1)
-            #         ).Else(
-            #             If(value[data_width-1],
-            #                 out.eq(tmp1 | tmp2)
-            #             ).Else(
-            #                 out.eq(tmp2)
-            #             ),
-            #             ack.eq(1)
-            #         )
-            #     )
-            # ).Else(
-            #     ack.eq(0),
-            #     step.eq(0)
-            # )
         ]
 
 
