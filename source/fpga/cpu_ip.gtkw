@@ -1,0 +1,27 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Mon Dec 14 20:29:23 2020
+[*]
+[dumpfile] "/home/prinz/projects/processors/HDL/work/litex/arty_s7/source/gateware/ebpf/cpu_ip.vcd"
+[dumpfile_mtime] "Mon Dec 14 20:19:04 2020"
+[dumpfile_size] 1824
+[savefile] "/home/prinz/projects/processors/HDL/work/litex/arty_s7/source/gateware/ebpf/cpu_ip.gtkw"
+[timestart] 161
+[size] 1855 1056
+[pos] -1 -1
+*-4.846673 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 235
+[signals_width] 102
+[sst_expanded] 1
+[sst_vpaned_height] 318
+@28
+CPU_IP.sys_clk
+CPU_IP.reset_n
+@29
+CPU_IP.enable
+@420
+CPU_IP.adj[31:0]
+@22
+CPU_IP.ip[31:0]
+[pattern_trace] 1
+[pattern_trace] 0

@@ -1,0 +1,9 @@
+[submodule "tools/ubpf"]
+	path = tools/ubpf
+	url = https://github.com/iovisor/ubpf
+[submodule "tools/rust-cbpf"]
+	path = tools/rust-cbpf
+	url = https://github.com/mmisono/rust-cbpf
+[submodule "tools/wishbone-utils"]
+	path = tools/wishbone-utils
+	url = https://github.com/litex-hub/wishbone-utils

@@ -1,0 +1,66 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    "editor.fontFamily": "Consolas",
+    "editor.fontSize": 14,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.glyphMargin": true,
+    "editor.rulers": [
+        80, 120
+    ],
+    "editor.minimap.enabled": true,
+    "editor.minimap.maxColumn": 120,
+
+    "files.exclude": {
+        "**/.DS_Store": true,
+        "**/.git": true,
+        "**/.hg": true,
+        "**/.svn": true,
+        "**/*.pyc": true,
+        "**/CVS": true,
+        "dist": true,
+        "node_modules": true,
+        "**/__pycache__": true
+    },
+
+    "workbench.colorCustomizations" : {
+        "editorBracketMatch.background": "#f008",
+        "editorBracketMatch.border": "#f00",
+
+        "editor.lineHighlightBackground": "#76047a8a",
+        "editor.renderLineHighlight": "line"
+    },
+
+    "window.zoomLevel": 2,
+    "files.trimTrailingWhitespace": true,
+
+    "bookmarks.navigateThroughAllFiles": true,
+    "bookmarks.saveBookmarksInProject": true,
+
+    "terminal.integrated.fontFamily": "'Source Code Pro for Powerline'",
+
+    "python.testing.unittestEnabled": true,
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./tests",
+        "-p",
+        "test_*.py"
+    ],
+    "python.linting.pylintArgs": [
+        "--rcfile",
+        "${workspaceRoot}/.vscode/.pylintrc"
+    ],
+    "python.languageServer": "Jedi",
+
+    "code-runner.clearPreviousOutput": true,
+    "code-runner.enableAppInsights": false,
+    "code-runner.runInTerminal": true,
+
+    "telemetry.enableCrashReporter": false,
+    "telemetry.enableTelemetry": false,
+    "python.testing.pytestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "git.ignoreLimitWarning": true,
+    "python.pythonPath": "/usr/bin/python3"
+}

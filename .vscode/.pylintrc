@@ -1,0 +1,6 @@
+[Master]
+init-hook='import sys; sys.path.append(0, '../source');'
+method-rgx=[a-z_][A-Za-z0-9_]{2,30}$
+
+[MESSAGES CONTROL]
+disable=unused-argument, missing-docstring, C0330, W0703

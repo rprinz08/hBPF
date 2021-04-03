@@ -1,0 +1,13 @@
+-- asm
+mov32 r0, 1
+lsh r0, 63
+
+mov32 r1, 55
+arsh r0, r1
+
+mov32 r2, 5
+arsh r0, r2
+
+exit
+-- result
+0xfffffffffffffff8

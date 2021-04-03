@@ -1,0 +1,21 @@
+-- asm
+mov r0, r1
+jeq r1, 0, +11
+jeq r1, 1, +9
+mov r3, 0
+mov r0, 1
+mov r2, 2
+mov r4, r0
+add r0, r3
+add r2, 1
+mov r3, r4
+jgt r2, r1, +2
+ja -6
+mov r0, 1
+exit
+-- args
+r1 = 9
+-- result
+0x22
+-- expected
+clocks = 324

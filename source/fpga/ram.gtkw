@@ -1,0 +1,77 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Sat Mar 27 17:34:38 2021
+[*]
+[dumpfile] "/home/prinz/projects/processors/HDL/work/litex/ebpf/source/fpga/ram.vcd"
+[dumpfile_mtime] "Sat Mar 27 17:20:36 2021"
+[dumpfile_size] 62756
+[savefile] "/home/prinz/projects/processors/HDL/work/litex/ebpf/source/fpga/ram.gtkw"
+[timestart] 0
+[size] 1855 1056
+[pos] -1 -1
+*-4.867776 45 405 455 5 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[markername] AWrite 1
+[sst_width] 235
+[signals_width] 307
+[sst_expanded] 1
+[sst_vpaned_height] 318
+@28
+RAM.sys_clk
+@22
+[color] 2
+RAM.ww[3:0]
+@28
+[color] 2
+RAM.we0
+[color] 2
+RAM.stb
+@22
+RAM.adr1[9:0]
+@23
+[color] 3
+RAM.addr_t[9:0]
+@22
+RAM.adr0[9:0]
+@28
+[color] 2
+RAM.ack
+@22
+RAM.dat_r1[7:0]
+RAM.dat_r0[7:0]
+RAM.dat_r2[15:0]
+RAM.dat_r4[31:0]
+RAM.dat_r8[63:0]
+@28
+RAM.we1
+@22
+[color] 5
+RAM.wait[1:0]
+[color] 1
+RAM.wcnt[3:0]
+[color] 5
+RAM.mem_data_0[7:0]
+RAM.mem_data_1[7:0]
+RAM.mem_data_2[7:0]
+RAM.mem_data_3[7:0]
+RAM.mem_data_4[7:0]
+RAM.mem_data_5[7:0]
+RAM.mem_data_6[7:0]
+RAM.mem_data_7[7:0]
+RAM.mem_data_8[7:0]
+RAM.mem_data_9[7:0]
+RAM.mem_data_10[7:0]
+RAM.mem_data_11[7:0]
+RAM.mem_data_12[7:0]
+RAM.mem_data_13[7:0]
+RAM.mem_data_14[7:0]
+RAM.mem_data_15[7:0]
+RAM.mem_data_16[7:0]
+RAM.mem_data_17[7:0]
+RAM.mem_data_18[7:0]
+RAM.mem_data_19[7:0]
+RAM.mem_data_20[7:0]
+RAM.mem_data_21[7:0]
+RAM.mem_data_22[7:0]
+RAM.mem_data_23[7:0]
+[pattern_trace] 1
+[pattern_trace] 0

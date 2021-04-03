@@ -1,0 +1,5 @@
+-- asm
+mov r11, 1
+exit
+-- error
+list assignment index out of range

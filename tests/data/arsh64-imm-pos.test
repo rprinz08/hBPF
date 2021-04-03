@@ -1,0 +1,8 @@
+-- asm
+mov32 r0, 1
+lsh r0, 62
+arsh r0, 55
+arsh r0, 4
+exit
+-- result
+0x0000000000000008

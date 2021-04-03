@@ -1,0 +1,40 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Fri Mar 12 20:43:48 2021
+[*]
+[dumpfile] "/home/prinz/projects/processors/HDL/work/litex/ebpf/source/fpga/math/divide.vcd"
+[dumpfile_mtime] "Fri Mar 12 20:23:04 2021"
+[dumpfile_size] 5356
+[savefile] "/home/prinz/projects/processors/HDL/work/litex/ebpf/source/fpga/math/divide.gtkw"
+[timestart] 113
+[size] 1855 1056
+[pos] -1 -1
+*-4.163479 197 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 235
+[signals_width] 219
+[sst_expanded] 1
+[sst_vpaned_height] 318
+@28
+[color] 3
+Divide.sys_clk
+[color] 3
+Divide.reset_n
+Divide.stb
+Divide.state[2:0]
+@22
+Divide.dividend[31:0]
+Divide.divisor[31:0]
+Divide.dd[31:0]
+Divide.dr[31:0]
+Divide.q[31:0]
+Divide.r[31:0]
+Divide.bits[31:0]
+@28
+[color] 1
+Divide.ack
+Divide.err
+@22
+Divide.quotient[31:0]
+Divide.remainder[31:0]
+[pattern_trace] 1
+[pattern_trace] 0

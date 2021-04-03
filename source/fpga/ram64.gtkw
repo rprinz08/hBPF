@@ -1,0 +1,67 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Fri Feb 12 18:14:34 2021
+[*]
+[dumpfile] "/home/prinz/projects/processors/HDL/work/litex/ebpf/source/fpga/ram64.vcd"
+[dumpfile_mtime] "Fri Feb 12 13:40:54 2021"
+[dumpfile_size] 27539
+[savefile] "/home/prinz/projects/processors/HDL/work/litex/ebpf/source/fpga/ram64.gtkw"
+[timestart] 0
+[size] 1855 1056
+[pos] -1 -1
+*-5.418436 65 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 235
+[signals_width] 304
+[sst_expanded] 1
+[sst_vpaned_height] 318
+@28
+RAM64.sys_clk
+[color] 2
+RAM64.stb
+@22
+[color] 2
+RAM64.adr[30:0]
+@28
+[color] 2
+RAM64.we
+[color] 2
+RAM64.ack
+@22
+RAM64.dat_r[63:0]
+RAM64.dat_w[63:0]
+[color] 5
+RAM64.mem_data_0[31:0]
+[color] 5
+RAM64.mem_data_1[31:0]
+[color] 5
+RAM64.mem_data_2[31:0]
+[color] 5
+RAM64.mem_data_3[31:0]
+[color] 5
+RAM64.mem_data_4[31:0]
+[color] 5
+RAM64.mem_data_5[31:0]
+[color] 5
+RAM64.mem_data_6[31:0]
+[color] 5
+RAM64.mem_data_7[31:0]
+[color] 5
+RAM64.mem_data_8[31:0]
+[color] 3
+RAM64.port_adr[6:0]
+@28
+[color] 3
+RAM64.port_re
+@22
+[color] 3
+RAM64.port_dat_r[31:0]
+[color] 3
+RAM64.port2_adr[6:0]
+@28
+[color] 3
+RAM64.port2_re
+@22
+[color] 3
+RAM64.port2_dat_r[31:0]
+[pattern_trace] 1
+[pattern_trace] 0

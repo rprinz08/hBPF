@@ -1,0 +1,48 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Tue Mar  2 20:14:17 2021
+[*]
+[dumpfile] "/home/prinz/projects/processors/HDL/work/litex/ebpf/source/fpga/cpu.vcd"
+[dumpfile_mtime] "Tue Mar  2 20:13:32 2021"
+[dumpfile_size] 622968
+[savefile] "/home/prinz/projects/processors/HDL/work/litex/ebpf/source/fpga/cpu.gtkw"
+[timestart] 0
+[size] 1855 1056
+[pos] -1 -1
+*-6.521939 1425 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 235
+[signals_width] 309
+[sst_expanded] 1
+[sst_vpaned_height] 373
+@28
+CPU.sys_clk
+[color] 2
+CPU.halt
+CPU.error
+@22
+[color] 5
+CPU.instruction[63:0]
+[color] 5
+CPU.opcode[7:0]
+[color] 5
+CPU.opclass[2:0]
+[color] 5
+CPU.dst[3:0]
+[color] 5
+CPU.src[3:0]
+[color] 5
+CPU.offset[15:0]
+[color] 5
+CPU.immediate[31:0]
+CPU.mem_data_0_1[7:0]
+CPU.mem_data_1_1[7:0]
+CPU.mem_data_2_1[7:0]
+CPU.mem_data_3_1[7:0]
+CPU.mem_data_4_1[7:0]
+CPU.mem_data_5_1[7:0]
+CPU.mem_data_6_1[7:0]
+CPU.mem_data_7_1[7:0]
+CPU.mem_data_8_1[7:0]
+CPU.mem_data_9_1[7:0]
+[pattern_trace] 1
+[pattern_trace] 0

@@ -1,0 +1,32 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Mon Mar  8 19:41:04 2021
+[*]
+[dumpfile] "/home/prinz/projects/processors/HDL/work/litex/ebpf/source/fpga/math.vcd"
+[dumpfile_mtime] "Mon Mar  8 19:40:32 2021"
+[dumpfile_size] 2512
+[savefile] "/home/prinz/projects/processors/HDL/work/litex/ebpf/source/fpga/math.gtkw"
+[timestart] 0
+[size] 1855 1056
+[pos] -1 -1
+*-5.616375 55 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 235
+[signals_width] 118
+[sst_expanded] 1
+[sst_vpaned_height] 318
+@28
+ARSH.sys_clk
+@22
+ARSH.value[63:0]
+ARSH.shift[5:0]
+@28
+ARSH.stb
+@22
+ARSH.tmp1[63:0]
+ARSH.tmp2[63:0]
+@28
+ARSH.ack
+@23
+ARSH.out[63:0]
+[pattern_trace] 1
+[pattern_trace] 0
