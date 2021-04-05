@@ -40,12 +40,10 @@ of how fast and how far you can get, with using alternate
 hardware description languages (compared to the classic 'V'
 languages VHDL and Verilog), most of the time open-source
 tools (compared to expensive, commercial toolchains) and
-cheap development boards (e.g [Arty-S7](https://reference.
-digilentinc.com/reference/programmable-logic/arty-s7/start)).
+cheap development boards (e.g [Arty-S7](https://reference.digilentinc.com/reference/programmable-logic/arty-s7/start)).
 
 It is not meant to compete with multi-core accelerator cards
-like [Xilinx Alveo](https://www.xilinx.com/products/
-boards-and-kits/alveo.html), instead its used to gain
+like [Xilinx Alveo](https://www.xilinx.com/products/boards-and-kits/alveo.html), instead its used to gain
 insights and perform experiments.
 
 ## Current State
@@ -149,8 +147,7 @@ the same as that of the original cBPF: processing network
 packets.
 
 By attaching a hBPF CPU directly to a network PHY/MAC a form
-of a [smart NIC](https://blog.mellanox.com/2018/08/
-defining-smartnic/) could be created. Such a NIC is capable
+of a [smart NIC](https://blog.mellanox.com/2018/08/defining-smartnic/) could be created. Such a NIC is capable
 to perform tasks on packets offloaded by the host CPU for
 performance reasons.
 
@@ -316,7 +313,7 @@ from command line in `tests` folder.
 Each test-case consists of a file in the `test` (or one of
 its sub-folders) folder. Test files are text files with a `.
 test` file extension. It consists of sections starting with
-`--`describing the test. The following test description shows
+`--` describing the test. The following test description shows
 a Fibonacci test with an `asm` section which is compiled on
 the fly before the test is executed, an `args` section which
 defines the input values, a `result` section defining whats
