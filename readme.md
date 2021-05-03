@@ -129,7 +129,7 @@ $ ./test_vm.py
 # This takes time ......
 $ ./test_fpga_sim.py
 # This needs an FPGA board ....
-$ ./test_fpga_sim.py
+$ ./test_fpga_hw.py
 ```
 
 For working with hardware you need in addition to the above,
