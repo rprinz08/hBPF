@@ -164,11 +164,11 @@ SoC builder framework. LiteX itself is based on [Migen](https://github.com/m-lab
 
 ![hBPF CPU](doc/images/cpu.png)
 
-The hBPF CPU has access to separated program- and data memory
+The hBPF CPU has access to separated program- and data-memory
 ([Harvard architecture](https://en.wikipedia.org/wiki/Harvard_architecture)).
-Data memory (8-Bit) in this example, holds network
-packets which are processed based on the
-instructions in program memory (64-Bit).
+Data-memory (8-Bit) holds network
+packets (defaults to 2048 bytes) which are processed based on the
+instructions in program memory (64-Bit, defaults to 1024 bytes).
 
 At the moment the `/reset` signals goes HIGH,
 the CPU starts processing instructions read
@@ -218,7 +218,7 @@ hardware implementations for Xilinx devices
 Based on the following overview, they can be used to
 test and debug hBPF and also to run the HW
 unit-tests as described under *testing* further
-down.
+down. They are not connected to an Ethernet PHY/MAC at the moment. Next samples will show how to use LiteETH to process real network packets.
 
 ![test-overview](doc/images/hbpf-debug-overview.png)
 
@@ -349,14 +349,14 @@ clocks = 324
 
 Also available are a `raw` section which describes a test
 program as hex dump and a `mem` section which describes the
-data memory as hex dump.
+data-memory as hex dump.
 
 Before executing a test the `asm` section is compiled to
 binary and sent to the device under test (either the
 emulator, simulator or hardware). For real hardware this is
 done using the Wishbone serial bridge. If a `raw` section is
 found in the test description it is sent after converting to
-binary from hex dump. Also the data memory is loaded from the
+binary from hex dump. Also the data-memory is loaded from the
 `mem` section contents if available.
 
 Next input registers R1-R5 are set according to `args`
