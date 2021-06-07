@@ -49,9 +49,11 @@ insights and perform experiments.
 ## Current State
 
 * All unit-tests pass
-* Can process binaries created with assembler or C (LLVM) without changes
+* Can process binaries created with assembler or C (LLVM) without any changes
 * not optimized
 * no stack
+
+Additional infos can be found in the [Blog](https://www.min.at/prinz/?x=cat:131).
 
 ## Installation
 
