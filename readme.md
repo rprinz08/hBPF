@@ -124,13 +124,21 @@ $ cargo build
 ```
 
 ```bash
-# run Tests
+# run Tests in tests folder
 $ cd ../../../tests
+
+# Test CPU emulator:
 # This completes fast
 $ ./test_vm.py
+
+# Test FPGA simulation:
 # This takes time ......
 $ ./test_fpga_sim.py
+
+# Test hardware:
 # This needs an FPGA board ....
+# (ensure that you change the configuration at the top of this
+# file to match your target hardware)
 $ ./test_fpga_hw.py
 ```
 
@@ -181,6 +189,11 @@ instructions. Whenever an error occurs (e.g
 division by 0, invalid instruction etc.) the
 `error` signal is set HIGH and the CPU stops
 processing instructions setting signal `halt` HIGH.
+
+Registers R1 - R5 are not cleared on reset and can be used
+as input arguments to a program, register R0 is used to
+return something. The same mechanism is also used when
+calling FPGA extensions by using call helpers.
 
 When CPU starts, internal `ticks` register is
 cleared and incremented every clock tick until CPU
@@ -249,7 +262,7 @@ Some examples are included in this project.
 
 In the Linux eBPF implementation register R1 is used as base
 pointer to the data-memory. This is not necessary for hBPF so
-register R1 is always initialized to zero after a reset.
+register R1 is used as input argument just as R2 - R5.
 
 #### Stack
 
