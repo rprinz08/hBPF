@@ -78,7 +78,7 @@ class Top(SoCMini):
         # Prepare program memory
         #td = tools.testdata.read('../../../../tests/data/prime.test')
         #td = tools.testdata.read('../../../../tests/data/mul64-reg.test')
-        td = tools.testdata.read('../../../../tests/data/fpga_mem.test')
+        td = tools.testdata.read('../../../../tests/data/hw/fpga_mem.test')
 
         if 'raw' in td:
             code = b''.join(struct.pack('<Q', x) for x in td['raw'])

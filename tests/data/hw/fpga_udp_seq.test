@@ -1,0 +1,92 @@
+-- asm
+# This program monitors received IP4 UDP packets with a specific
+# structure containing a timestamp and an increasing 2-byte packet sequence
+# counter. It checks that sequence number is consistent. Sets the
+# error LED at the first lost request.
+#
+# A request with a lower sequence number then the last processed
+# is interpreted as the start of a new test sequence.
+#
+# This program needs call handler support for hBPF CPU extensions. See
+#
+# This file is not part of normal test suite (thus disabled for all tests)
+# but is used to easily make changes and try out things manually for
+# source/fpga/hw/arty-s7-50-nic for an example.
+
+# Get Ethertype from received packet
+mov32 r1, 12
+ldxh r4, [r1]
+be16 r4
+
+# Check if IP4
+jeq r4, 0x0800, +1
+ja +26
+
+# Check if IP4 UDP
+mov32 r1, 23
+ldxb r3, [r1]
+jne r3, 17, +23
+
+# Check if IP4 UDP Port 6000
+mov32 r1, 36
+ldxh r3, [r1]
+be16 r3
+jne r3, 6000, +19
+
+# Get sequence number of request
+mov32 r1, 68
+ldxdw r5, [r1]
+be64 r5
+
+# Read last sequence from Store
+mov r1, 0
+call 0xff000003
+mov r6, r0
+
+# If sequence smaller than last stored,
+# set sequence as new start (just store)
+# and clear LEDs
+jle r5, r6, +1
+ja +3
+
+# Clear LEDs
+mov r1, 0
+call 0xff000001
+ja +5
+
+# If sequence > then last sequence + 1 then
+# we missed a ping, set error LED
+add32 r6, 1
+jne r5, r6, +1
+ja +2
+
+# Set error LED
+mov r1, 4
+call 0xff000001
+
+# Trigger error = halt
+#call 0xffffffff
+
+# Store new sequence number
+mov r1, 0
+mov r2, r5
+call 0xff000002
+
+# Return current sequence
+mov r0, r6
+exit
+
+-- mem
+10 e2 d5 00 00 00 00 50 b6 19 72 e1 08 00 45 00
+00 38 71 9e 40 00 40 11 a0 81 0a 00 0a 64 0a 00
+0a 32 b7 6a 17 70 00 24 00 02 32 30 32 31 2d 30
+36 2d 31 34 20 31 36 3a 35 39 3a 32 37 2e 37 33
+31 35 39 33 00 00 00 00 00 00 00 0e
+
+-- result
+0x000e
+
+-- expected
+disable_emu_test = 1
+disable_sim_test = 1
+disable_hw_test = 0

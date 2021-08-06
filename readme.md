@@ -390,13 +390,16 @@ The existing eBPF development tools (compilers, assemblers,
 filters) can be used to develop for hBPF. Samples can be found
 in the `development` directory.
 
-## Hardware targets
+## Hardware targets and examples
 
-Two hardware targets are included:
+Some examples on the included targets are provided:
 
-[Arty S7](source/fpga/hw/arty-s7-50/readme.md)
+hBPF development targets
+* [Arty S7](source/fpga/hw/arty-s7-50/readme.md)
+* [Zybo Z7](source/fpga/hw/zybo-z7-20/readme.md)
 
-[Zybo Z7](source/fpga/hw/zybo-z7-20/readme.md)
+Packet processing with LiteETH and hBPF
+* [Arty S7 MultiNIC](source/fpga/hw/arty-s7-50-nic/readme.md)
 
 ## Misc
 

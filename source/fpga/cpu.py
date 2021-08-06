@@ -37,6 +37,7 @@ class CPU(Module, AutoCSR):
         self.reset_n = reset_n = Signal()
         self.error = error = Signal()
         self.halt = halt = Signal()
+        self.ticks = ticks = Signal(64)
         self.debug = Signal()
 
         # CSR registers
@@ -81,7 +82,6 @@ class CPU(Module, AutoCSR):
         # # #
 
         reset_n_int = Signal()
-        ticks = Signal(64)
         state = Signal(self.STATE_HALT.bit_length())
         data_ack = Signal()
         div64_ack = Signal()
@@ -250,7 +250,7 @@ class CPU(Module, AutoCSR):
                 keep_dst.eq(0),
                 state.eq(self.STATE_OP_FETCH),
                 pgm.stb.eq(0),
-                data.stb.eq(0),
+                #data.stb.eq(0),
                 ticks.eq(0),
                 error.eq(0),
                 halt.eq(0),

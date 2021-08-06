@@ -1,0 +1,29 @@
+-- asm
+mov32 r1, 12
+ldxh r4, [r1]
+jeq r4, 0xdd86, +7  # note byte order
+jeq r4, 0x0008, +3  # note byte order
+
+# Use call helper extension to set LEDs
+
+mov r1, 0           # Clear all LEDs
+call 0xff000001
+ja +5
+
+mov r1, 1           # Set IP4 LED
+call 0xff000001
+ja +2
+
+mov r1, 2           # Set IPv6 LED
+call 0xff000001
+
+mov32 r0, r4        # Return ethertype
+exit
+-- mem
+10 e2 d5 00 00 00 00 50 b6 19 72 e1 08 00 45 00
+00 36 2b 2a 40 00 40 11 e6 f7 0a 00 0a 64 0a 00
+0a 32 d8 ee 17 70 00 22 57 2c 32 30 32 31 2d 30
+36 2d 31 31 20 31 31 3a 30 38 3a 30 39 2e 33 30
+39 35 39 39
+-- result
+0x0008
