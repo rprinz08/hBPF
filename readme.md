@@ -53,7 +53,7 @@ insights and perform experiments.
 * not optimized
 * no stack
 
-Additional infos can be found in the [Blog](https://www.min.at/prinz/?x=cat:131).
+Additional infos can be found in the [Blog](https://www.min.at/hbpf).
 
 ## Installation
 
