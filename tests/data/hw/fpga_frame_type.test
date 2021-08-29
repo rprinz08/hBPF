@@ -1,3 +1,6 @@
+# Determine packet type (IP or IPv6) and indicate with LEDs
+# To enable this test set 'disable_hw_test' to 0
+
 -- asm
 mov32 r1, 12
 ldxh r4, [r1]
@@ -27,3 +30,7 @@ exit
 39 35 39 39
 -- result
 0x0008
+-- expected
+disable_emu_test = 1
+disable_sim_test = 1
+disable_hw_test = 1

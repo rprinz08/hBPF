@@ -38,12 +38,14 @@ class TestFPGA_HW(unittest.TestCase):
 
     # Path to folder which contains CSR and config files. Can be absolute or
     # relative to this test file
-    #CFG_PATH = "../source/fpga/hw/arty-s7-50/debug"
-    CFG_PATH = "../source/fpga/hw/zybo-z7-20/debug"
+    CFG_PATH = "../source/fpga/hw/arty-s7-50/debug"
+    #CFG_PATH = "../source/fpga/hw/arty-s7-50-nic/debug"
+    #CFG_PATH = "../source/fpga/hw/zybo-z7-20/debug"
     # --------------------------------------------------------------------------
 
 
     def setUp(self):
+        # Determine path of configuration file and CSR definitions.
         if os.path.isabs(self.__class__.CFG_PATH):
             csr_csv = os.path.join(self.__class__.CFG_PATH, "csr.csv")
             config = os.path.join(self.__class__.CFG_PATH, ".config")
@@ -53,6 +55,11 @@ class TestFPGA_HW(unittest.TestCase):
             config = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                 self.__class__.CFG_PATH, ".config")
 
+        # Load configuration file.
+        # Note: The configuration file is a Linux shell script which is also
+        # included by other shell scripts. It may ony contain variable definitions
+        # in the form 'export KEY=VALUE'. This shell script is read hear so that
+        # its variables can be reused with this python test.
         config_arg = {}
         with open(config) as f:
             for line in f:
@@ -60,21 +67,27 @@ class TestFPGA_HW(unittest.TestCase):
                     continue
                 if line.startswith('#'):
                     continue
-                # Remove leading `export `
+                # Remove possible leading `export `
                 # then, split name / value pair
                 key, value = line.replace('export ', '', 1).strip().split('=', 1)
                 config_arg[key] = value
 
+        # Set some default values for attributes not defined in config file.
         uart_port = config_arg.get("TARGET_PORT", "/dev/ttyUSB1")
         uart_baudrate = config_arg.get("TARGET_SPEED", "115200")
         debug = int(config_arg.get("DEBUG", "0"), 0) > 0
 
-        #print("-"*50)
-        #print("CONFIG: {}".format(config))
-        #print("UART_PORT: {}".format(uart_port))
-        #print("UART_BAUDRATE: {}".format(uart_baudrate))
-        #print("DEBUG: {}".format(debug))
-        #print("-"*50)
+        # Show current configuration.
+        print("-"*50)
+        print("Note: Be sure to configure '{}' ".format(__file__))
+        print("to load the right configuration file for your target. Current ")
+        print("set target configuration file is:")
+        print("CONFIG: {}".format(config))
+        if debug != 0:
+            print("UART_PORT: {}".format(uart_port))
+            print("UART_BAUDRATE: {}".format(uart_baudrate))
+            print("DEBUG: {}".format(debug))
+        print("-"*50)
 
         self.comm = HW_Connect(CommUART(uart_port, baudrate=uart_baudrate,
                                     csr_csv=csr_csv, debug=debug))

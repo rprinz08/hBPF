@@ -6,3 +6,7 @@ exit
 aa bb 11 22 33 44 cc dd
 -- result
 0x2211bbaa
+-- expected
+disable_emu_test = 1
+disable_sim_test = 1
+disable_hw_test = 1

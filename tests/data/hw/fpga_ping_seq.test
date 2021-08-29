@@ -13,6 +13,7 @@
 # This file is not part of normal test suite (thus disabled for all tests)
 # but is used to easily make changes and try out things manually for
 # source/fpga/hw/arty-s7-50-nic for an example.
+# To enable set 'disable_hw_test' to 0
 
 # Get Ethertype from received packet into R4
 mov32 r1, 12
@@ -88,4 +89,4 @@ exit
 -- expected
 disable_emu_test = 1
 disable_sim_test = 1
-disable_hw_test = 0
+disable_hw_test = 1

@@ -55,6 +55,14 @@ insights and perform experiments.
 
 Additional infos can be found in the [Blog](https://www.min.at/hbpf).
 
+Tested with:
+
+Migen Git commit: 3ffd64c9b47619bd6689b44f29a8ed7c74365f14
+
+LiteX Git commit: fefc5aae664629788a7082bec623985bce80de75
+
+LiteETH Git commit: e718a9ea5d09066c6d1958670e87bdfe9fa3d13e
+
 ## Installation
 
 The following instructions gets you going, assuming no

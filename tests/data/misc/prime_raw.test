@@ -23,6 +23,5 @@ r1 = 65413
 0x01
 -- expected
 clocks = 8634288
-disable_emu_test = 1
+disable_emu_test = 0
 disable_sim_test = 1
-
