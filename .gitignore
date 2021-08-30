@@ -17,4 +17,5 @@ working/
 *.swp
 *.jou
 *.log
+*.pid
 

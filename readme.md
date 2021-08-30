@@ -57,11 +57,13 @@ Additional infos can be found in the [Blog](https://www.min.at/hbpf).
 
 Tested with:
 
-Migen Git commit: 3ffd64c9b47619bd6689b44f29a8ed7c74365f14
+Migen Git commit: 27dbf03edd75c32dc1706e2a1316950c3a8d452a
 
-LiteX Git commit: fefc5aae664629788a7082bec623985bce80de75
+LiteX Git commit: 1d27e25cbb5d20625e2aba04a77e01fc4e15aa73
 
-LiteETH Git commit: e718a9ea5d09066c6d1958670e87bdfe9fa3d13e
+LiteETH Git commit: 66fcad12cfda1db5551aeeb5148f4f99babf8c8e
+
+*Note: Ensure that you build hBPF with above Git commits of LiteX/Migen dependencies.*
 
 ## Installation
 
