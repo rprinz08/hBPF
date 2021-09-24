@@ -42,6 +42,8 @@ or r0, r8
 or r0, r9
 
 exit
+-- args
+graph = 0
 -- result
 0x030f0f
 -- mem

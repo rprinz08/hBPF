@@ -198,19 +198,20 @@ signal goes high and the CPU stops processing
 instructions. Whenever an error occurs (e.g
 division by 0, invalid instruction etc.) the
 `error` signal is set HIGH and the CPU stops
-processing instructions setting signal `halt` HIGH.
+processing instructions setting signal `halt`
+HIGH as well.
 
 Registers R1 - R5 are not cleared on reset and can be used
 as input arguments to a program, register R0 is used to
 return something. The same mechanism is also used when
-calling FPGA extensions by using call helpers.
+calling FPGA extensions by using call handlers.
 
 When CPU starts, internal `ticks` register is
 cleared and incremented every clock tick until CPU
 halts which can be used to measure execution speed.
 
-The **math.divider** submodule contains divider and the
-**math.shifter** a left/right shifter including arithmetic
+The **math.divider** submodule contains decimal divider and
+the **math.shifter** a left/right shifter including arithmetic
 shifts.
 
 The project includes the following components:
@@ -227,7 +228,7 @@ in the FPGA implementations.
 
 The FPGA implementation of hBPF was done using LiteX and Migen
 tools. The same Python3 code which later is converted
-to Verilog and be tested with the simulation capabilities
+to Verilog can be tested with the simulation capabilities
 from LiteX.
 
 ### FPGA Implementations
@@ -260,8 +261,7 @@ Kernel, hBPF has some deviations and differences.
 #### Calls
 
 In eBPF, the `call` instruction is used to call selected
-subroutines in the Linux Kernel (so called *Helper Functions*)
-. In the hBPF implementation, the `call` opcode can be used
+subroutines in the Linux Kernel (so called *Helper Functions*). In the hBPF implementation, the `call` opcode can be used
 to extend the CPU for example by a hardware implemented
 pseudo random number generator (e.g. [LFSR](https://en.wikipedia.org/wiki/Linear-feedback_shift_register)) or to
 provide I/O functions. They can be provided by means of a
@@ -336,14 +336,13 @@ from command line in `tests` folder.
 * `test_fpga_hw.py` - runs test-cases against hBPF CPU running on real hardware via a serial Wishbone bridge (medium fast)
 
 Each test-case consists of a file in the `test` (or one of
-its sub-folders) folder. Test files are text files with a `.
-test` file extension. It consists of sections starting with
+its sub-folders) folder. Test files are text files with a `.test` file extension. It consists of sections starting with
 `--` describing the test. The following test description shows
 a Fibonacci test with an `asm` section which is compiled on
 the fly before the test is executed, an `args` section which
 defines the input values, a `result` section defining whats
 expected in register R0 after test completes and an `expected`
-section which defines additional criterias that must be
+section which defines additional criteria that must be
 met like the number of clock cycles the test may take.
 
 ```
@@ -394,6 +393,8 @@ signals until `HALT` signal goes high or expected clocks
 control signals and output register R0 are compared against
 the test definition.
 
+In addition, statistic information per test case is collected as described [here](doc/statistics.md).
+
 ## Developing for hBPF
 
 The existing eBPF development tools (compilers, assemblers,
@@ -413,9 +414,9 @@ Packet processing with LiteETH and hBPF
 
 ## Misc
 
-This project is by no means complete or. Feel free to play
-with it and contribute if you find a bug or thing there are
-thing which could be made better.
+This project is by no means complete or error free or
+production ready. Feel free to play with it and contribute if
+you find a bug or thing which could be made better.
 
 ### License
 

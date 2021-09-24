@@ -19,6 +19,7 @@
 0x9500000000000000
 -- args
 r1 = 65413
+graph = 0
 -- result
 0x01
 -- expected

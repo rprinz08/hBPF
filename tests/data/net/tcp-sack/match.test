@@ -1,4 +1,6 @@
 -- asm @ tcp-sack.asm
 -- mem @ pkt-sack.hex
+-- args
+graph = 0
 -- result
 0x1

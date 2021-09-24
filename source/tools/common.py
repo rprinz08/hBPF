@@ -2,6 +2,7 @@ import os
 import math
 import struct
 
+
 def get_data(filename, data_width_bits=32, endianness="big"):
 
     assert data_width_bits in [8, 16, 32, 64], \
@@ -34,3 +35,31 @@ def get_data(filename, data_width_bits=32, endianness="big"):
                 data[i] = struct.unpack(">"+conv, w)[0]
             i += 1
     return data
+
+
+def tail(fd, lines=1, buffer=4098):
+    """Tail a file and get X lines from the end"""
+
+    # place holder for the lines found
+    lines_found = []
+
+    # block counter will be multiplied by buffer
+    # to get the block size from the end
+    block_counter = -1
+
+    # loop until we find X lines
+    while len(lines_found) < lines:
+        try:
+            fd.seek(block_counter * buffer, os.SEEK_END)
+        # Either file is too small, or too many lines requested.
+        except IOError:
+            fd.seek(0)
+            lines_found = fd.readlines()
+            break
+
+        lines_found = fd.readlines()
+
+        # Decrement the block counter to get the next X bytes.
+        block_counter -= 1
+
+    return lines_found[-lines:]

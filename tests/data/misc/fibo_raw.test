@@ -15,6 +15,7 @@
 0x9500000000000000
 -- args
 r1 = 100
+graph = 0
 -- result
 0x33db76a7c594bfc3
 -- expected

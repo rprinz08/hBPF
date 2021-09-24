@@ -20,5 +20,7 @@ be64 r0
 exit
 -- mem
 ff ff ff ff ff ff ff ff
+-- args
+graph = 0
 -- result
 0xf0f2f3f4f5f6f7f8

@@ -32,5 +32,7 @@ ldxb r0, [r0+9]
 exit
 -- mem
 2a 00 00 00 00 00 00 00 00 00
+-- args
+graph = 0
 -- result
 0x2a

@@ -30,6 +30,8 @@ sub r4, r3
 mov r0, 0x0
 jne r4, 0x0, -10
 exit
+-- args
+graph = 0
 -- result
 0x1
 -- expected
