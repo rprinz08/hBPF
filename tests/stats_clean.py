@@ -2,6 +2,7 @@
 
 import os
 import sys
+import argparse
 # add search paths seen from project root folder
 # (used for vscode test integration)
 sys.path.insert(0, "source")
@@ -16,8 +17,20 @@ If set to zero or if less then n stat entries are available for a test, then the
 stats file is removed for that test.
 """
 
-KEEP_N_STATS = 2
-REMOVE_EMPTY_STATS = True
+parser = argparse.ArgumentParser(description='Clean hBPF testcase statistics')
+parser.add_argument("keep", type=int, default=2, nargs="?",
+                    help="how many most recent test statistic entries to keep. " +
+                    "Set to 0 to delete all (default 2)")
+parser.add_argument("-r", "--remove-empty", default=False, action="store_true",
+                    help="remove statistic files if they are empty (default False)")
+parser.add_argument("-D", "--delete-all", default=False, action="store_true",
+                    help="delete all statistic files regardless of other options. " +
+                    "(default False)")
+
+args = parser.parse_args()
+if args.delete_all:
+    args.keep = 0
+    args.remove_empty = True
 
 # Gather statistic files per testcase
 base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
@@ -36,10 +49,10 @@ truncated = 0
 
 for filename in result:
 
-    if KEEP_N_STATS > 0:
+    if args.keep > 0:
         lines = []
         with open(filename, "r+") as tfd:
-            lines = tools.common.tail(tfd, KEEP_N_STATS)
+            lines = tools.common.tail(tfd, args.keep)
             tfd.truncate(0)
             tfd.seek(0)
 
@@ -48,10 +61,9 @@ for filename in result:
                 truncated += 1
                 for line in lines:
                     l = line.strip().strip('\x00')
-                    print("line ({}), len ({})".format(l, len(l)))
                     tfd.write("{}\n".format(l))
             else:
-                if REMOVE_EMPTY_STATS:
+                if args.remove_empty:
                     print(f"Remove statistics file: {filename}")
                     removed += 1
                     os.remove(filename)
@@ -60,7 +72,7 @@ for filename in result:
         removed += 1
         os.remove(filename)
 
-if KEEP_N_STATS > 0:
-    print(f"\n{removed} files removed, {truncated} truncated to {KEEP_N_STATS} entries\n")
+if args.keep > 0:
+    print(f"\n{removed} files removed, {truncated} truncated to {args.keep} entries\n")
 else:
     print(f"\n{removed} files removed\n")
