@@ -217,7 +217,7 @@ class TestFPGA_HW(unittest.TestCase):
         print("R3: ({:20}, 0x{:016x}), R4: ({:20}, 0x{:016x})".format(r3, r3, r4, r4))
         print("R5: ({:20}, 0x{:016x})".format(r5, r5))
 
-        # Open test statistics file
+        # Open op-code statistics file
         test_file = test_data.get("filename", None)
         stat_file = None
         if test_file is not None:
@@ -253,7 +253,7 @@ class TestFPGA_HW(unittest.TestCase):
             do_graph = int(str(args.get('graph', 1)), 0)
             do_graph = 1 if do_graph > 0 else 0
             date = datetime.now().strftime("%Y%m%d-%H%M%S")
-            sfd.write("\"{}\",{},{},{},{}\n".format(date, clk_cnt, halt, error, do_graph))
+            sfd.write("\"HW\",\"{}\",{},{},{},{}\n".format(date, clk_cnt, halt, error, do_graph))
             sfd.close()
 
         # Check result

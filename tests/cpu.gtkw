@@ -1,0 +1,118 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Sat Oct  2 15:44:44 2021
+[*]
+[dumpfile] "/home/prinz/projects/processors/HDL/work/litex/hBPF/tests/data/net/tcp-sack/nomatch.vcd"
+[dumpfile_mtime] "Sat Oct  2 14:58:27 2021"
+[dumpfile_size] 770703
+[savefile] "/home/prinz/projects/processors/HDL/work/litex/hBPF/tests/cpu.gtkw"
+[timestart] 2237
+[size] 1855 1056
+[pos] -1 -1
+*-4.521939 2275 2245 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 235
+[signals_width] 365
+[sst_expanded] 1
+[sst_vpaned_height] 373
+@28
+CPU.sys_clk
+CPU.cpu_reset_n
+CPU.cpu_reset_n_int
+@800200
+-CPU State
+@28
+[color] 2
+CPU.cpu_halt
+[color] 2
+CPU.cpu_error
+@24
+[color] 2
+CPU.cpu_ticks[63:0]
+[color] 2
+CPU.cpu_state[2:0]
+@28
+[color] 2
+CPU.cpu_debug
+@1000200
+-CPU State
+@800200
+-Instruction
+@22
+[color] 5
+CPU.cpu_instruction[63:0]
+[color] 5
+CPU.cpu_opcode[7:0]
+@28
+[color] 5
+CPU.cpu_opclass[2:0]
+@22
+[color] 5
+CPU.cpu_dst[3:0]
+[color] 5
+CPU.cpu_src[3:0]
+[color] 5
+CPU.cpu_offset[15:0]
+[color] 5
+CPU.cpu_immediate[31:0]
+@1000200
+-Instruction
+@800200
+-Registers
+@22
+[color] 3
+CPU.cpu_regs0[63:0]
+[color] 3
+CPU.cpu_regs1[63:0]
+[color] 3
+CPU.cpu_regs2[63:0]
+[color] 3
+CPU.cpu_regs3[63:0]
+[color] 3
+CPU.cpu_regs4[63:0]
+[color] 3
+CPU.cpu_regs5[63:0]
+[color] 3
+CPU.cpu_regs6[63:0]
+[color] 3
+CPU.cpu_regs7[63:0]
+[color] 3
+CPU.cpu_regs8[63:0]
+[color] 3
+CPU.cpu_regs9[63:0]
+[color] 3
+CPU.cpu_regs10[63:0]
+@1000200
+-Registers
+@800200
+-ins_cache
+@24
+CPU.cpu_ic_ip[31:0]
+@28
+CPU.cpu_ic_valid
+CPU.cpu_ic_re
+@22
+CPU.cpu_ic_instruction[63:0]
+@28
+CPU.cpu_ic_reset
+CPU.cpu_ic_reset_n
+@29
+[color] 4
+CPU.cpu_ic_we
+@22
+CPU.cpu_ic_cache_addr[31:0]
+@28
+[color] 7
+CPU.cpu_ic_stb
+[color] 7
+CPU.cpu_ic_ack
+CPU.cpu_ic_we_pending
+@24
+CPU.cpu_ic_level[2:0]
+@22
+CPU.cpu_ic_adr0[31:0]
+@24
+CPU.cpu_ic_level[2:0]
+@1000200
+-ins_cache
+[pattern_trace] 1
+[pattern_trace] 0

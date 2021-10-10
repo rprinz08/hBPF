@@ -26,8 +26,8 @@ parser.add_argument("-r", "--remove-empty", default=False, action="store_true",
 parser.add_argument("-D", "--delete-all", default=False, action="store_true",
                     help="delete all statistic files regardless of other options. " +
                     "(default False)")
-
 args = parser.parse_args()
+
 if args.delete_all:
     args.keep = 0
     args.remove_empty = True

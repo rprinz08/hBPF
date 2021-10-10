@@ -47,10 +47,10 @@ with open(f"./statistics/test_statistics_{date}.csv", "w") as fd:
             testname = os.path.splitext(os.path.split(filename)[1])[0]
             fd.write("{},\"{}\"\n".format(stats, testname))
 
-            do_graph = int(stats.split(",")[4])
+            do_graph = int(stats.split(",")[5])
             if do_graph > 0:
                 tests.append(testname)
-                c = int(stats.split(",")[1])
+                c = int(stats.split(",")[2])
                 cycles.append(c)
 
 # Create graph from testcase statistics result where enabled

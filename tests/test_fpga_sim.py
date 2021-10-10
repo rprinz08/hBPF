@@ -21,6 +21,7 @@ import re
 import ntpath
 import ubpf.assembler
 import tools.testdata
+from datetime import datetime
 from migen import *
 from litedram.frontend.bist import LFSR
 from fpga.ram import *
@@ -69,6 +70,9 @@ class CallHandler(Module):
                     7: [
                         ret.eq(lfsr.o)
                     ],
+                    0xff000001: [
+                        # set LEDs to R1 bitmask
+                    ],
                     "default": [
                         err.eq(1)
                     ]
@@ -88,6 +92,8 @@ class TestFPGA_Sim(unittest.TestCase):
         print()
 
         td = tools.testdata.read(filename)
+        td['filename'] = filename
+        td['name'] = os.path.splitext(os.path.split(filename)[1])[0]
 
         self.assertFalse('asm' not in td and 'raw' not in td,
                     'no asm or raw section in datafile')
@@ -117,8 +123,10 @@ class TestFPGA_Sim(unittest.TestCase):
             data_mem = list(data_mem)
 
         # Instantiate simulated CPU
-        vcd_file = os.path.abspath(os.path.dirname(__file__))
-        vcd_file = os.path.join(vcd_file, __name__ + ".vcd")
+        #vcd_file = os.path.abspath(os.path.dirname(__file__))
+        #vcd_file = os.path.join(vcd_file, __name__ + ".vcd")
+        vcd_file = os.path.abspath(os.path.dirname(filename))
+        vcd_file = os.path.join(vcd_file, td['name'] + ".vcd")
 
         cpu = CPU(pgm_init=pgm_mem, data_init=data_mem, call_handler=CallHandler())
         run_simulation(cpu, self.cpu_test(cpu, td, default_max_clock_cycles=1000),
@@ -178,6 +186,13 @@ class TestFPGA_Sim(unittest.TestCase):
         print("R3: ({:20}, 0x{:016x}), R4: ({:20}, 0x{:016x})".format(r3, r3, r4, r4))
         print("R5: ({:20}, 0x{:016x})".format(r5, r5))
 
+        # Open op-code statistics file
+        test_file = test_data.get("filename", None)
+        stat_file = None
+        if test_file is not None:
+            stat_file = os.path.splitext(test_file)[0] + ".stats"
+            sfd = open(stat_file, "a")
+
         # End reset.
         yield cpu.reset_n.eq(1)
         yield
@@ -200,6 +215,14 @@ class TestFPGA_Sim(unittest.TestCase):
             clk_cnt,
             "LOW" if halt == 0 else "HIGH",
             "LOW" if error == 0 else "HIGH", r0, r0))
+
+        # Write clock cycles for this test to statistics file
+        if stat_file is not None:
+            do_graph = int(str(args.get('graph', 1)), 0)
+            do_graph = 1 if do_graph > 0 else 0
+            date = datetime.now().strftime("%Y%m%d-%H%M%S")
+            sfd.write("\"SIM\",\"{}\",{},{},{},{}\n".format(date, clk_cnt, halt, error, do_graph))
+            sfd.close()
 
         # Check result
         #if not expected_error:
