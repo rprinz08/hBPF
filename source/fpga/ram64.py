@@ -77,10 +77,12 @@ class RAM64(Module, AutoCSR):
                 self.init = get_data(init_file, data_width_bits=32, endianness=endianness)
                 init_half_words = len(self.init)
                 init_words = math.ceil(init_half_words / 2)
+                print("init from file:          {}".format(init_file))
             elif isinstance(init, list):
                 self.init = init
                 init_half_words = len(self.init)
                 init_words = math.ceil(init_half_words / 2)
+                print("init from list:      len {}".format(len(self.init)))
 
             if debug:
                 print("max words:               {}".format(max_words))
@@ -107,83 +109,67 @@ class RAM64(Module, AutoCSR):
 
             self.specials.mem = Memory(32, self.words, init=self.init)
 
-        self.specials.port = self.mem.get_port(has_re=True,
+        self.specials.port = self.mem.get_port(has_re=True, async_read=True,
             write_capable=write_capable)
 
         # Get next half word based on current word address
-        self.specials.port2 = self.mem.get_port(has_re=True,
+        self.specials.port2 = self.mem.get_port(has_re=True, async_read=True,
                                 write_capable=write_capable, we_granularity=0,
                                 mode=READ_FIRST if not write_capable else WRITE_FIRST)
 
         self.comb += [
             self.port2.adr.eq(self.port.adr + 1),
-            self.port2.re.eq(self.port.re)
+            self.port2.re.eq(self.port.re),
+
+            self.dat_r.eq(Cat(self.port2.dat_r, self.port.dat_r)),
+            self.ack.eq(self.port.re & ~self.wait & self.stb)
         ]
 
         if not write_capable:
             self.sync += [
+                self.wait.eq(0),
                 If(self.stb,
                     If(~self.ack,
                         If(self.port.re,
-                            If(self.wait,
-                                self.wait.eq(self.wait -1)
-                            ).Else(
-                                self.port.re.eq(0),
-
-                                self.dat_r.eq(Cat(self.port2.dat_r, self.port.dat_r)),
-
-                                self.ack.eq(1)
-                            )
+                            self.port.re.eq(0),
                         ).Else(
                             self.port.adr.eq(self.adr << 1),
                             self.port.re.eq(1)
                         )
-                    ).Else(
-                        self.ack.eq(0)
                     )
                 ).Else(
-                    self.ack.eq(0),
-                    self.wait.eq(1)
+                    self.port.re.eq(0)
                 )
             ]
         else:
             self.sync += [
                 If(self.stb,
-                    If(~self.ack,
-                        If(self.port.re,
-                            If(self.wait,
-                                self.wait.eq(self.wait -1)
-                            ).Else(
-                                self.port.re.eq(0),
-                                self.port.we.eq(0),
-                                self.port2.we.eq(0),
-
-                                self.dat_r.eq(Cat(self.port2.dat_r, self.port.dat_r)),
-
-                                self.ack.eq(1)
-                            )
+                    If(self.port.re,
+                        If(self.wait,
+                            self.wait.eq(self.wait -1)
                         ).Else(
-                            self.port.adr.eq(self.adr << 1),
-                            self.port.re.eq(1),
-
-                            If(self.we,
-                                self.port.dat_w.eq(self.dat_w[32:]),
-                                self.port.we.eq(1),
-
-                                self.port2.dat_w.eq(self.dat_w[0:32]),
-                                self.port2.we.eq(1)
-                            )
-
+                            self.port.re.eq(0),
+                            self.port.we.eq(0),
+                            self.port2.we.eq(0),
                         )
                     ).Else(
-                        self.ack.eq(0)
+                        self.port.adr.eq(self.adr << 1),
+                        self.port.re.eq(1),
+
+                        If(self.we,
+                            self.port.dat_w.eq(self.dat_w[32:]),
+                            self.port.we.eq(1),
+
+                            self.port2.dat_w.eq(self.dat_w[0:32]),
+                            self.port2.we.eq(1),
+
+                            self.wait.eq(1)
+                        )
                     )
                 ).Else(
-                    self.ack.eq(0),
-                    self.wait.eq(1)
+                    self.wait.eq(0)
                 )
             ]
-
 
 ##################
 # RAM testbench: #
@@ -262,13 +248,14 @@ def ram_test(mem):
         yield from ram_read_ut(mem, 0x01, 0xB406000000000000)
         yield from ram_read_ut(mem, 0x03, 0xDC00000010000000)
 
-    ## Test writing data to RAM.
-    yield from ram_write_ut(mem, 0x00, 0x0123456789ABCDEF)
-    yield from ram_write_ut(mem, 0xd8, 0xDEADBEEFDEC0FFEE)
+    if mem.write_capable:
+        ## Test writing data to RAM.
+        yield from ram_write_ut(mem, 0x00, 0x0123456789ABCDEF)
+        yield from ram_write_ut(mem, 0xd8, 0xDEADBEEFDEC0FFEE)
 
-    ## Test reading data from RAM.
-    yield from ram_read_ut(mem, 0x00, 0x0123456789ABCDEF)
-    yield from ram_read_ut(mem, 0xd8, 0xDEADBEEFDEC0FFEE)
+        ## Test reading data from RAM.
+        yield from ram_read_ut(mem, 0x00, 0x0123456789ABCDEF)
+        yield from ram_read_ut(mem, 0xd8, 0xDEADBEEFDEC0FFEE)
 
     # Done.
     yield
@@ -277,8 +264,14 @@ def ram_test(mem):
 
 # 'main' method to run a basic testbench.
 if __name__ == "__main__":
-    # Instantiate a Mem module.
+    # Instantiate a writeable Mem module.
     dut = RAM64(init="../../tests/samples/test_pgm_mem.bin", write_capable=True)
 
     # Run the tests.
-    run_simulation(dut, ram_test(dut), vcd_name="ram64.vcd")
+    run_simulation(dut, ram_test(dut), vcd_name="ram64_rw.vcd")
+
+    # Instantiate a read only Mem module.
+    dut = RAM64(init="../../tests/samples/test_pgm_mem.bin", write_capable=False)
+
+    # Run the tests.
+    run_simulation(dut, ram_test(dut), vcd_name="ram64_ro.vcd")
