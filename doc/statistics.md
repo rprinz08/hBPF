@@ -52,4 +52,4 @@ To keep 5 most recent statistic test results per test case use:
 stats_clean.py 5
 ```
 
-*Note: The number of clock cycles in statistics corresponds to the number of cycles for the entire test case (consisting of several opcodes) and not for the op-code instruction itself that it is testing. For cycles per opcode see [here](opcode.md).*
+*Note: The number of clock cycles in statistics corresponds to the number of cycles for the entire test case (consisting of several opcodes) and not for the op-code instruction itself that it is testing. For cycles per opcode see [here](opcodes.md).*
