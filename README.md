@@ -423,6 +423,19 @@ you find a bug or thing which could be made better.
 This project is licensed under **BSD 3-Clause License**.
 See [LICENSE](LICENSE) file.
 
+### Contributing
+
+If you would like to contribute to hBPF (which we would greatly appreciate)
+please read the [Contributing Guide](CONTRIBUTING.md) beforehand.
+
+### Code of conduct
+
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+
+
+Also please read the [Code of Conduct](CODE_OF_CONDUCT.md) to keep the hBPF
+community approachable and respectable!
+
 ### Logo / Icon
 
 ![hBPF Icon](doc/images/hbpf-icon-s.png)
