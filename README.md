@@ -50,7 +50,10 @@ insights and perform experiments.
 
 * All unit-tests pass
 * Can process binaries created with assembler or C (LLVM) without any changes
-* not optimized
+* Not optimized
+    * This is a work in progress.
+    * Statistic information per test case is collected as described [here](doc/statistics.md).
+    * Clock cycles per op-code are also [available](doc/opcodes.md).
 * no stack
 
 Additional infos can be found in the [Blog](https://www.min.at/hbpf).
@@ -393,7 +396,8 @@ signals until `HALT` signal goes high or expected clocks
 control signals and output register R0 are compared against
 the test definition.
 
-In addition, statistic information per test case is collected as described [here](doc/statistics.md).
+In addition, statistic information per test case is collected as described
+[here](doc/statistics.md).
 
 ## Developing for hBPF
 

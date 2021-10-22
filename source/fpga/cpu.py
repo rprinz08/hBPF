@@ -31,7 +31,7 @@ class CPU(Module, AutoCSR):
     def __init__(self,
             pgm_init=None, max_pgm_words=MAX_PGM_WORDS,
             data_init=None, max_data_words=MAX_DATA_WORDS,
-            debug=False, call_handler=None):
+            debug=False, call_handler=None, simulation=False):
 
         # Direct CPU status and control signals.
         self.reset_n = reset_n = Signal()
@@ -239,6 +239,15 @@ class CPU(Module, AutoCSR):
                         ip.adj.eq(1)
                     )
                 )
+            ]
+
+        # Only used during simulation
+        if simulation:
+            self.state = state
+            self.opcode = opcode
+            self.ins_ptr = Signal(32)
+            self.comb += [
+                self.ins_ptr.eq(ip.val)
             ]
 
         # Sync. logic.

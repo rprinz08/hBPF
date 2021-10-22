@@ -34,15 +34,22 @@ In addition, a bar chart in PNG format showing clock ticks per test case is crea
 
 ![Test result graph](images/hbpf-test-stats-sample.png)
 
-The combined CSV and graph can be found in `test/statistics` folder. Their filenames include a timestamp so that historic results can be kept for comparison.
+The combined CSV and graph can be found in `tests/statistics` folder. Their filenames include a timestamp so that historic results can be kept for comparison.
+
+### Compare
+
+To compare two arbitrary test results the `tests/stats_compare.py` script can be used.
+It produces a bar chart showing the difference in clock cycles as shown below:
+
+![Test result graph](images/hbpf-test-stats-compare-sample.png)
 
 ## Housekeeping
 
-To reduce the number of historic test results the `stats_clean.py` script can be used. It can be called with the maximum number of most recent historic test results which should be kept. If called with an amount of less equal 0, test result files will be removed completely. This script does not affect combined test results and graphs under `test/statistics`.
+To reduce the number of historic test results the `stats_clean.py` script can be used. It can be called with the maximum number of most recent historic test results which should be kept. If called with an amount of less equal 0, test result files will be removed completely. This script does not affect combined test results and graphs under `tests/statistics`.
 
 To keep 5 most recent statistic test results per test case use:
 ```bash
 stats_clean.py 5
 ```
 
-*Note: The number of clock cycles in statistics corresponds to the number of cycles for the entire test case (consisting of several op-code instructions) and not for the op-code instruction itself that it is testing.*
+*Note: The number of clock cycles in statistics corresponds to the number of cycles for the entire test case (consisting of several opcodes) and not for the op-code instruction itself that it is testing. For cycles per opcode see [here](opcode.md).*
