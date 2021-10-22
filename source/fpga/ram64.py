@@ -77,12 +77,14 @@ class RAM64(Module, AutoCSR):
                 self.init = get_data(init_file, data_width_bits=32, endianness=endianness)
                 init_half_words = len(self.init)
                 init_words = math.ceil(init_half_words / 2)
-                print("init from file:          {}".format(init_file))
+                if debug:
+                    print("init from file:          {}".format(init_file))
             elif isinstance(init, list):
                 self.init = init
                 init_half_words = len(self.init)
                 init_words = math.ceil(init_half_words / 2)
-                print("init from list:      len {}".format(len(self.init)))
+                if debug:
+                    print("init from list:      len {}".format(len(self.init)))
 
             if debug:
                 print("max words:               {}".format(max_words))
