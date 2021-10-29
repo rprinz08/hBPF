@@ -68,21 +68,25 @@ The following table lists hBPF opcodes and the clock cycles they need.
 
 ## Load X
 
+Numbers in brackets are using data RAM without CSR support
+
 |Asm|OpCode|Cycles|
 |---|---|---|
-|ldxb|0x71|17|
-|ldxh|0x69|17|
-|ldxw|0x61|17|
-|ldxdw|0x79|17|
+|ldxb|0x71|17 (9)|
+|ldxh|0x69|17 (9)|
+|ldxw|0x61|17 (9)|
+|ldxdw|0x79|17 (9)|
 
 ## Store X
 
+Numbers in brackets are using data RAM without CSR support
+
 |Asm|OpCode|Cycles|
 |---|---|---|
-|stxb|0x73|19|
-|stxh|0x6b|20|
-|stxw|0x63|22|
-|stxdw|0x7b|26|
+|stxb|0x73|19 (11)|
+|stxh|0x6b|20 (12)|
+|stxw|0x63|22 (14)|
+|stxdw|0x7b|26 (18)|
 
 ## Load
 
@@ -92,12 +96,14 @@ The following table lists hBPF opcodes and the clock cycles they need.
 
 ## Store
 
+Numbers in brackets are using data RAM without CSR support
+
 |Asm|OpCode|Cycles|
 |---|---|---|
-|stb|0x72|19|
-|sth|0x6a|20|
-|stw|0x62|22|
-|stdw|0x7a|26|
+|stb|0x72|19 (11)|
+|sth|0x6a|20 (12)|
+|stw|0x62|22 (14)|
+|stdw|0x7a|26 (18)|
 
 ## Jump
 
@@ -118,7 +124,7 @@ The following table lists hBPF opcodes and the clock cycles they need.
 |jsgt reg|0x6d|4|
 |jsge imm|0x75|4|
 |jsge reg|0x7d|4|
-|call|0x85|*|
+|call|0x85|\*|
 |exit|0x95|4|
 |jlt imm|0xa5|4|
 |jlt reg|0xad|4|
