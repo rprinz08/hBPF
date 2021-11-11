@@ -207,7 +207,7 @@ HIGH as well.
 Registers R1 - R5 are not cleared on reset and can be used
 as input arguments to a program, register R0 is used to
 return something. The same mechanism is also used when
-calling FPGA extensions by using call handlers.
+calling FPGA extensions by using [call-handlers](doc/call_handler.md).
 
 When CPU starts, internal `ticks` register is
 cleared and incremented every clock tick until CPU
@@ -264,12 +264,7 @@ Kernel, hBPF has some deviations and differences.
 #### Calls
 
 In eBPF, the `call` instruction is used to call selected
-subroutines in the Linux Kernel (so called *Helper Functions*). In the hBPF implementation, the `call` opcode can be used
-to extend the CPU for example by a hardware implemented
-pseudo random number generator (e.g. [LFSR](https://en.wikipedia.org/wiki/Linear-feedback_shift_register)) or to
-provide I/O functions. They can be provided by means of a
-`call_handler` Migen Module when creating a CPU instance.
-Some examples are included in this project.
+subroutines in the Linux Kernel (so called *Helper Functions*). In the hBPF implementation, the `call` opcode can be used to extend the CPU by means of [call-handlers](doc/call_handler.md).
 
 #### Register R1
 
@@ -348,7 +343,7 @@ expected in register R0 after test completes and an `expected`
 section which defines additional criteria that must be
 met like the number of clock cycles the test may take.
 
-```
+```asm
 # Example test case description. Calculating the Fibonacci
 # for provided input in register R1
 -- asm
