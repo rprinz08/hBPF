@@ -7,7 +7,7 @@ ldxh r4, [r1]
 jeq r4, 0xdd86, +7  # note byte order
 jeq r4, 0x0008, +3  # note byte order
 
-# Use call helper extension to set LEDs
+# Use call handler extension to set LEDs
 
 mov r1, 0           # Clear all LEDs
 call 0xff000001
