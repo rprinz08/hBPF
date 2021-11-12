@@ -445,7 +445,8 @@ class CPU(Module, AutoCSR):
                                         If(~div64_ack,
                                             div64.dividend.eq(regs[dst] & 0xffffffff),
                                             div64.divisor.eq(immediate & 0xffffffff),
-                                            state.eq(self.STATE_DIV_PENDING)
+                                            state.eq(self.STATE_DIV_PENDING),
+                                            div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.quotient),
                                             state.eq(self.STATE_OP_FETCH),
@@ -456,7 +457,8 @@ class CPU(Module, AutoCSR):
                                         If(~div64_ack,
                                             div64.dividend.eq(regs[dst] & 0xffffffff),
                                             div64.divisor.eq(regs[src] & 0xffffffff),
-                                            state.eq(self.STATE_DIV_PENDING)
+                                            state.eq(self.STATE_DIV_PENDING),
+                                            div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.quotient),
                                             state.eq(self.STATE_OP_FETCH),
@@ -467,7 +469,8 @@ class CPU(Module, AutoCSR):
                                         If(~div64_ack,
                                             div64.dividend.eq(regs[dst] & 0xffffffff),
                                             div64.divisor.eq(immediate & 0xffffffff),
-                                            state.eq(self.STATE_DIV_PENDING)
+                                            state.eq(self.STATE_DIV_PENDING),
+                                            div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.remainder),
                                             state.eq(self.STATE_OP_FETCH),
@@ -478,7 +481,8 @@ class CPU(Module, AutoCSR):
                                         If(~div64_ack,
                                             div64.dividend.eq(regs[dst] & 0xffffffff),
                                             div64.divisor.eq(regs[src] & 0xffffffff),
-                                            state.eq(self.STATE_DIV_PENDING)
+                                            state.eq(self.STATE_DIV_PENDING),
+                                            div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.remainder),
                                             state.eq(self.STATE_OP_FETCH),
@@ -879,7 +883,8 @@ class CPU(Module, AutoCSR):
                                         If(~div64_ack,
                                             div64.dividend.eq(regs[dst]),
                                             div64.divisor.eq(immediate),
-                                            state.eq(self.STATE_DIV_PENDING)
+                                            state.eq(self.STATE_DIV_PENDING),
+                                            div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.quotient),
                                             state.eq(self.STATE_OP_FETCH),
@@ -890,7 +895,8 @@ class CPU(Module, AutoCSR):
                                         If(~div64_ack,
                                             div64.dividend.eq(regs[dst]),
                                             div64.divisor.eq(regs[src]),
-                                            state.eq(self.STATE_DIV_PENDING)
+                                            state.eq(self.STATE_DIV_PENDING),
+                                            div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.quotient),
                                             state.eq(self.STATE_OP_FETCH),
@@ -901,7 +907,8 @@ class CPU(Module, AutoCSR):
                                         If(~div64_ack,
                                             div64.dividend.eq(regs[dst]),
                                             div64.divisor.eq(immediate),
-                                            state.eq(self.STATE_DIV_PENDING)
+                                            state.eq(self.STATE_DIV_PENDING),
+                                            div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.remainder),
                                             state.eq(self.STATE_OP_FETCH),
@@ -912,7 +919,8 @@ class CPU(Module, AutoCSR):
                                         If(~div64_ack,
                                             div64.dividend.eq(regs[dst]),
                                             div64.divisor.eq(regs[src]),
-                                            state.eq(self.STATE_DIV_PENDING)
+                                            state.eq(self.STATE_DIV_PENDING),
+                                            div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.remainder),
                                             state.eq(self.STATE_OP_FETCH),
@@ -1078,16 +1086,18 @@ class CPU(Module, AutoCSR):
 
                     # Exec math divide.
                     self.STATE_DIV_PENDING: [
-                        div64.stb.eq(1),
-                        If(div64.ack,
-                            div64.stb.eq(0),
-                            If(div64.err,
-                                regs[dst].eq(0xffffffffffffffff),
-                                error.eq(1),
-                                halt.eq(1)
-                            ).Else(
-                                state.eq(self.STATE_DECODE),
-                                div64_ack.eq(1)
+                        If(div64.stb,
+                            div64.stb.eq(0)
+                        ).Else(
+                            If(div64.ack,
+                                If(div64.err,
+                                    regs[dst].eq(0xffffffffffffffff),
+                                    error.eq(1),
+                                    halt.eq(1)
+                                ).Else(
+                                    state.eq(self.STATE_DECODE),
+                                    div64_ack.eq(1)
+                                )
                             )
                         )
                     ],

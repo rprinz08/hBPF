@@ -10,16 +10,9 @@ import random
 import struct
 import math
 from migen import *
-from migen.fhdl.bitcontainer import bits_for
 
 
 class Divider(Module):
-    STATE_IDLE = 0
-    STATE_PREPARE = 1
-    STATE_SHIFT = 2
-    STATE_SUB = 3
-    STATE_DONE = 4
-
     def __init__(self, data_width=32):
         self.dw = dw = data_width
 
@@ -38,91 +31,43 @@ class Divider(Module):
 
         # # #
 
-        state = Signal(bits_for(self.STATE_DONE))
-        dd = Signal(dw)
-        dr = Signal(dw)
-        q = Signal(dw)
-        r = Signal(dw)
-        bits = Signal(dw)
+        qr = Signal(2*dw)
+        counter = Signal(max=dw+1)
+        divisor_r = Signal(dw)
+        diff = Signal(dw+1)
+
+        self.comb += [
+            quotient.eq(qr[:dw]),
+            remainder.eq(qr[dw:]),
+            ack.eq(counter == 0),
+            diff.eq(qr[dw-1:] - divisor_r)
+        ]
 
         self.sync += [
             If(~reset_n,
-                dd.eq(0),
-                dr.eq(0),
-                q.eq(0),
-                r.eq(0),
-                ack.eq(0),
+                counter.eq(~0),
+                qr.eq(0),
                 err.eq(0),
-                state.eq(self.STATE_IDLE)
             ).Else(
-                Case(state, {
-                    self.STATE_IDLE: [
-                        ack.eq(0),
-                        If(stb,
-                            dd.eq(dividend),
-                            dr.eq(divisor),
-                            state.eq(self.STATE_PREPARE)
-                        )
-                    ],
-                    self.STATE_PREPARE: [
-                        q.eq(0),
-                        r.eq(0),
-                        bits.eq(dw),
-                        state.eq(self.STATE_SHIFT),
-                        # division by 0 (divisor == 0)
-                        If(dr == 0,
-                            q.eq(1),
-                            r.eq(1),
-                            err.eq(1),
-                            state.eq(self.STATE_DONE)
-                        # dividend < divisor
-                        ).Elif(dd < dr,
-                            r.eq(dd),
-                            state.eq(self.STATE_DONE)
-                        # dividend == divisor
-                        ).Elif(dr == dd,
-                            q.eq(1),
-                            state.eq(self.STATE_DONE)
-                        )
-                    ],
-                    self.STATE_SHIFT: [
-                        If(Cat(dd[dw-1], r[0:dw-1]) < dr,
-                            bits.eq(bits - 1),
-                            r.eq(Cat(dd[dw-1], r[0:dw-1])),
-                            dd.eq(Cat(0, dd[0:dw-1])),
-                        ).Else(
-                            state.eq(self.STATE_SUB)
-                        )
-                    ],
-                    self.STATE_SUB: [
-                        If(bits > 0,
-                            r.eq(Cat(dd[dw-1], r[0:dw-1])),
-                            dd.eq(Cat(0, dd[0:dw-1])),
-
-                            If((Cat(dd[dw-1], r[0:dw-1]) - dr)[dw-1] == 0,
-                                q.eq(Cat(1, q[0:dw-1])),
-                                r.eq(Cat(dd[dw-1], r[0:dw-1]) - dr)
-                            ).Else(
-                                q.eq(Cat(0, q[0:dw-1]))
-                            ),
-
-                            bits.eq(bits - 1)
-                        ).Else(
-                            state.eq(self.STATE_DONE)
-                        )
-                    ],
-                    self.STATE_DONE: [
-                        ack.eq(1),
-                        quotient.eq(q),
-                        remainder.eq(r),
-                        If(~stb,
-                            state.eq(self.STATE_IDLE)
-                        )
-                    ],
-                    "default": [
-                        state.eq(self.STATE_IDLE)
-                    ]
-                })
+                If(stb,
+                    err.eq(0),
+                    If(divisor == 0,
+                        counter.eq(0),
+                        qr.eq(Cat(1, Replicate(0, dw-1), 1)),
+                        err.eq(1)
+                    ).Else(
+                        counter.eq(dw),
+                        qr.eq(dividend),
+                        divisor_r.eq(divisor)
+                    )
+                ).Elif(~ack,
+                    If(diff[dw],
+                        qr.eq(Cat(0, qr[:2 * dw - 1]))
+                    ).Else(
+                        qr.eq(Cat(1, qr[:dw-1], diff[:dw]))
+                    ),
+                    counter.eq(counter - 1)
+                )
             )
         ]
 
@@ -257,7 +202,7 @@ def div_test32(divider):
 # 'main' method to run a basic testbench.
 if __name__ == "__main__":
     dut = Divider(data_width=8)
-    run_simulation(dut, div_test8(dut), vcd_name="math_divide.vcd")
+    run_simulation(dut, div_test8(dut), vcd_name="divide.vcd")
 
     dut = Divider(data_width=32)
-    run_simulation(dut, div_test32(dut), vcd_name="math_divide.vcd")
+    run_simulation(dut, div_test32(dut), vcd_name="divide.vcd")
