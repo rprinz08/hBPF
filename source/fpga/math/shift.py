@@ -102,4 +102,4 @@ def arsh_test64(arsh):
 # 'main' method to run a basic testbench.
 if __name__ == "__main__":
     dut = Shifter(data_width=64)
-    run_simulation(dut, arsh_test64(dut), vcd_name="math.vcd")
+    run_simulation(dut, arsh_test64(dut), vcd_name="shift.vcd")
