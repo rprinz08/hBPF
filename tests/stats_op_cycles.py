@@ -49,8 +49,9 @@ def cpu_test(fd, opcode, cpu):
     if opcode.lddw:
         again = 1
 
-    # Start with reset
+    # Start with CPU and instruction cache in reset.
     yield cpu.reset_n.eq(0)
+    yield cpu.ic_reset_n.eq(0)
     yield cpu.csr_r1.storage.eq(opcode.regs_in.r1)
     yield cpu.csr_r2.storage.eq(opcode.regs_in.r2)
     yield cpu.csr_r3.storage.eq(opcode.regs_in.r3)
@@ -58,8 +59,16 @@ def cpu_test(fd, opcode, cpu):
     yield cpu.csr_r5.storage.eq(opcode.regs_in.r5)
     yield
 
-    # Process instrcutions after reset
+    # Bring out instruction cache from reset and allow it to fill
+    # but keep CPU stil in reset.
+    yield cpu.ic_reset_n.eq(1)
+    if not opcode.ic_reset:
+        for i in range(10):
+            yield
+
+    # Start processing instructions after CPU out of reset.
     yield cpu.reset_n.eq(1)
+
     while ticks < 200 and done != 9:
         yield
 
@@ -92,7 +101,7 @@ def cpu_test(fd, opcode, cpu):
         ticks += 1
 
 
-    # Get instruction pointer at end of opcode to test (e.g. after a jump)
+    # Get instruction pointer at end of opcode to test (e.g. after a jump).
     yield
     ip = (yield cpu.ins_ptr)
 
@@ -132,19 +141,19 @@ def opcode_cycles(fd, opcode):
     half_words = len(code) // 4
     pgm_mem = list(struct.unpack('>{}L'.format(half_words), code))
 
-    # Create som dummy data memory
+    # Create some dummy data memory
     data = b"\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff"
     data_mem = list(data)
 
     cpu = CPU(pgm_init=pgm_mem, data_init=data_mem, simulation=True)
-    # vcd_file = os.path.abspath(os.path.dirname(__file__))
-    # vcd_file = os.path.join(vcd_file, __name__ + ".vcd")
     run_simulation(cpu, cpu_test(fd, opcode, cpu), vcd_name="stats_op_cycles.vcd")
 
 
 REGS = namedtuple('REGS', 'r1 r2 r3 r4 r5')
-OPCODE = namedtuple('OPCODE', 'name code regs_in, regs_cmp, ip, lddw')
-OPCODE.__new__.__defaults__ = ("", "", REGS(0, 0, 0, 0, 0), REGS(0, 0, 0, 0, 0), None, False)
+OPCODE = namedtuple('OPCODE', 'name code regs_in, regs_cmp,' +
+    'ip, lddw, ic_reset')
+OPCODE.__new__.__defaults__ = ("", "", REGS(0, 0, 0, 0, 0), REGS(0, 0, 0, 0, 0),
+    None, False, False)
 
 # ALU 64-Bit
 opcodes_alu64 = [
@@ -375,83 +384,83 @@ opcodes_stx = [
 opcodes_jmp = [
     OPCODE("ja",        "ja +1234",
         REGS(0, 0, 0, 0, 0),
-        REGS(0, 0, 0, 0, 0), 1234+1),
+        REGS(0, 0, 0, 0, 0), 1234+1, False, True),
     OPCODE("jeq imm",   "jeq r1, 9, +4",
         REGS(9, 0, 0, 0, 0),
-        REGS(9, 0, 0, 0, 0), 5),
+        REGS(9, 0, 0, 0, 0), 5, False, True),
     OPCODE("jeq reg",   "jeq r1, r2, +4",
         REGS(9, 9, 0, 0, 0),
-        REGS(9, 9, 0, 0, 0), 5),
+        REGS(9, 9, 0, 0, 0), 5, False, True),
     OPCODE("jgt imm",   "jgt r1, 6, +2",
         REGS(5, 0, 0, 0, 0),
-        REGS(5, 0, 0, 0, 0), 1),
+        REGS(5, 0, 0, 0, 0), 1, False, True),
     OPCODE("jgt reg",   "jgt r1, r2, +2",
         REGS(5, 6, 0, 0, 0),
-        REGS(5, 6, 0, 0, 0), 1),
+        REGS(5, 6, 0, 0, 0), 1, False, True),
     OPCODE("jge imm",   "jge r1, 5, +4",
         REGS(5, 0, 0, 0, 0),
-        REGS(5, 0, 0, 0, 0), 5),
+        REGS(5, 0, 0, 0, 0), 5, False, True),
     OPCODE("jge reg",   "jge r1, r2, +4",
         REGS(5, 6, 0, 0, 0),
-        REGS(5, 6, 0, 0, 0), 1),
+        REGS(5, 6, 0, 0, 0), 1, False, True),
     OPCODE("jset imm",  "jset r1, 0x8, +4",
         REGS(9, 0, 0, 0, 0),
-        REGS(9, 0, 0, 0, 0)),
+        REGS(9, 0, 0, 0, 0), None, False, True),
     OPCODE("jset reg",  "jset r1, r2, +4",
         REGS(9, 8, 0, 0, 0),
-        REGS(9, 8, 0, 0, 0)),
+        REGS(9, 8, 0, 0, 0), None, False, True),
     OPCODE("jne imm",   "jne r1, 7, +543",
         REGS(6, 0, 0, 0, 0),
-        REGS(6, 0, 0, 0, 0), 544),
+        REGS(6, 0, 0, 0, 0), 544, False, True),
     OPCODE("jne reg",   "jne r1, r2, +543",
         REGS(6, 7, 0, 0, 0),
-        REGS(6, 7, 0, 0, 0), 544),
+        REGS(6, 7, 0, 0, 0), 544, False, True),
     OPCODE("jsgt imm",  "jsgt r1, 0xffffffff, +4",
         REGS(0, 0, 0, 0, 0),
-        REGS(0, 0, 0, 0, 0)),
+        REGS(0, 0, 0, 0, 0), None, False, True),
     OPCODE("jsgt reg",  "jsgt r1, r2, +4",
         REGS(0, 0, 0, 0, 0),
-        REGS(0, 0, 0, 0, 0)),
+        REGS(0, 0, 0, 0, 0), None, False, True),
     OPCODE("jsge imm",  "jsge r1, 0xffffffff, +5",
         REGS(0, 0, 0, 0, 0),
-        REGS(0, 0, 0, 0, 0)),
+        REGS(0, 0, 0, 0, 0), None, False, True),
     OPCODE("jsge reg",  "jsge r1, r2, +5",
         REGS(0, 0, 0, 0, 0),
-        REGS(0, 0, 0, 0, 0)),
+        REGS(0, 0, 0, 0, 0), None, False, True),
     # OPCODE("call",       "call 0",
     #     REGS(0, 0, 0, 0, 0),
     #     REGS(0, 0, 0, 0, 0)),
     OPCODE("exit",      "exit",
         REGS(0, 0, 0, 0, 0),
-        REGS(0, 0, 0, 0, 0)),
+        REGS(0, 0, 0, 0, 0), None, False, True),
     OPCODE("jlt imm",   "jlt r1, 4, +2",
         REGS(3, 0, 0, 0, 0),
-        REGS(3, 0, 0, 0, 0), 3),
+        REGS(3, 0, 0, 0, 0), 3, False, True),
     OPCODE("jlt reg",   "jlt r1, r2, +2",
         REGS(3, 4, 0, 0, 0),
-        REGS(3, 4, 0, 0, 0), 3),
+        REGS(3, 4, 0, 0, 0), 3, False, True),
     OPCODE("jle imm",   "jle r1, 4, +99",
         REGS(4, 0, 0, 0, 0),
-        REGS(4, 0, 0, 0, 0), 100),
+        REGS(4, 0, 0, 0, 0), 100, False, True),
     OPCODE("jle reg",   "jle r1, r2, +42",
         REGS(4, 5, 0, 0, 0),
-        REGS(4, 5, 0, 0, 0), 43),
+        REGS(4, 5, 0, 0, 0), 43, False, True),
     OPCODE("jslt imm",  "jslt r1, 0xfffffffd, +2",
         REGS(0, 0, 0, 0, 0),
-        REGS(0, 0, 0, 0, 0)),
+        REGS(0, 0, 0, 0, 0), None, False, True),
     OPCODE("jslt reg",  "jslt r1, r1, +2",
         REGS(0, 0, 0, 0, 0),
-        REGS(0, 0, 0, 0, 0)),
+        REGS(0, 0, 0, 0, 0), None, False, True),
     OPCODE("jsle imm",  "jsle r1, 0xfffffffd, +1",
         REGS(0, 0, 0, 0, 0),
-        REGS(0, 0, 0, 0, 0)),
+        REGS(0, 0, 0, 0, 0), None, False, True),
     OPCODE("jsle reg",  "jsle r1, r2, +1",
         REGS(0, 0, 0, 0, 0),
-        REGS(0, 0, 0, 0, 0)),
+        REGS(0, 0, 0, 0, 0), None, False, True),
 ]
 
 
-# Open op-code statistics file
+# Open op-code statistics file.
 date = datetime.now().strftime("%Y%m%d-%H%M%S")
 output_file = f"./statistics/opcode_cycles_{date}.{'md' if OUPUT_MD_TABLE else 'csv'}"
 with open(output_file, "w") as fd:

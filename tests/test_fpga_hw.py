@@ -240,6 +240,11 @@ class TestFPGA_HW(unittest.TestCase):
 
         # Read back result in R0 and ticks needed to complete.
         r0 = self.comm.cpu_get_R0()
+        r6 = self.comm.cpu_get_R6()
+        r7 = self.comm.cpu_get_R7()
+        r8 = self.comm.cpu_get_R8()
+        r9 = self.comm.cpu_get_R9()
+        r10 = self.comm.cpu_get_R10()
         clk_cnt = self.comm.cpu_get_ticks()
 
         print("Output:")
@@ -247,6 +252,10 @@ class TestFPGA_HW(unittest.TestCase):
             clk_cnt,
             "LOW" if halt == 0 else "HIGH",
             "LOW" if error == 0 else "HIGH", r0, r0))
+
+        print("R6: ({:20}, 0x{:016x}), R7: ({:20}, 0x{:016x})".format(r6, r6, r7, r7))
+        print("R8: ({:20}, 0x{:016x}), R9: ({:20}, 0x{:016x})".format(r8, r8, r9, r9))
+        print("R10:({:20}, 0x{:016x})".format(r10, r10))
 
         # Write clock cycles for this test to statistics file
         if stat_file is not None:

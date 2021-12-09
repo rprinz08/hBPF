@@ -9,7 +9,7 @@ from litex.soc.interconnect.csr import *
 from fpga.constants import *
 from fpga.ram import *
 from fpga.ram64 import *
-from fpga.cpu_ip import *
+from fpga.cpu_fetch import *
 from fpga.math.divide import Divider
 from fpga.math.shift import Shifter
 
@@ -121,24 +121,22 @@ class CPU(Module, AutoCSR):
         dst_reg_32 = Signal(32)
         dst_reg_32_s = Signal((32, True))
 
-        # hbpf program memory.
-        self.submodules.pgm = pgm = RAM64(
-                                max_words=max_pgm_words,
-                                init=pgm_init, write_capable=False,
-                                debug=debug)
-
         # hbpf data memory (e.g packet data).
         self.submodules.data = data = RAM(max_words=max_data_words,
                                 init=data_init, write_capable=True,
                                 csr_access=True,
                                 debug=debug)
 
-        # Instruction pointer.
-        self.submodules.ip = ip = CPU_IP()
+        # Instruction cache (contains instruction pointer and program memory)
+        self.submodules.ic = ic = CPU_Fetch(
+                                max_words=max_pgm_words,
+                                init=pgm_init,
+                                debug=debug)
 
         # Math divider for 32 and 64 bit.
         self.submodules.div64 = div64 = Divider(data_width=64)
 
+        # Logic and arithmetic shifter.
         self.submodules.arsh64 = arsh64 = Shifter(data_width=64)
 
         # Combinatorial logic.
@@ -160,11 +158,6 @@ class CPU(Module, AutoCSR):
 
             csr_ticks.status.eq(ticks),
             reset_n_int.eq(reset_n | csr_ctl.storage[0]),
-
-            ip.reset_n.eq(reset_n_int),
-            If(~halt,
-                ip.enable.eq(ip.adj != 0)
-            ),
 
             div64.reset_n.eq(reset_n_int),
 
@@ -206,8 +199,6 @@ class CPU(Module, AutoCSR):
             dst_reg_s.eq(regs[dst]),
             dst_reg_32.eq(regs[dst]),
             dst_reg_32_s.eq(regs[dst]),
-
-            pgm.adr.eq(ip.val),
         ]
 
         # If a call handler is provided for this CPU instance ...
@@ -236,7 +227,6 @@ class CPU(Module, AutoCSR):
                     ).Else(
                         self.r0.eq(self.call_handler.ret),
                         state.eq(self.STATE_OP_FETCH),
-                        ip.adj.eq(1)
                     )
                 )
             ]
@@ -246,20 +236,29 @@ class CPU(Module, AutoCSR):
             self.state = state
             self.opcode = opcode
             self.ins_ptr = Signal(32)
+            self.ic_reset_n = Signal()
+            self.ic_valid = Signal()
             self.comb += [
-                self.ins_ptr.eq(ip.val)
+                self.ins_ptr.eq(ic.ip),
+                self.ic_valid.eq(ic.valid),
+                ic.reset_n.eq(self.ic_reset_n),
+            ]
+        else:
+            self.comb += [
+                ic.reset_n.eq(reset_n_int)
             ]
 
         # Sync. logic.
         self.sync += [
+            ic.re.eq(0),
+            ic.we.eq(0),
+
             # Reset state.
             If(~reset_n_int,
                 instruction.eq(0),
                 keep_op.eq(0),
                 keep_dst.eq(0),
                 state.eq(self.STATE_OP_FETCH),
-                pgm.stb.eq(0),
-                #data.stb.eq(0),
                 ticks.eq(0),
                 error.eq(0),
                 halt.eq(0),
@@ -281,7 +280,6 @@ class CPU(Module, AutoCSR):
             # If halt signal high, stop CPU.
             ).Elif(halt,
                 state.eq(self.STATE_HALT),
-                ip.adj.eq(0),
 
             # Check invalid source register.
             ).Elif(src >= self.MAX_REGS,
@@ -293,9 +291,11 @@ class CPU(Module, AutoCSR):
                 error.eq(1),
                 halt.eq(1)
 
+            ).Elif(~ic.valid,
+                ticks.eq(ticks + 1),
+
             # Process opcodes.
             ).Else(
-                self.debug.eq(0),
                 ticks.eq(ticks + 1),
 
                 csr_r1.storage.eq(self.r1),
@@ -305,26 +305,21 @@ class CPU(Module, AutoCSR):
                 csr_r5.storage.eq(self.r5),
 
                 Case(state, {
-                    # Fetch instruction from program memory.
                     self.STATE_OP_FETCH: [
-                        pgm.stb.eq(1),
-                        ip.adj.eq(0),
-                        If(pgm.ack,
-                            pgm.stb.eq(0),
+                        If(ic.valid,
+                            instruction.eq(ic.instruction),
                             state.eq(self.STATE_DECODE),
-                            instruction.eq(pgm.dat_r),
-
-                            # Check for invalid LDDW instruction
-                            If( (keep_op & pgm.dat_r[56:64]) != 0,
-                                error.eq(1),
-                                halt.eq(1)
-                            )
+                            ic.re.eq(1),
+                        ),
+                        # Check for invalid LDDW instruction
+                        If( (keep_op & ic.instruction[56:64]) != 0,
+                            error.eq(1),
+                            halt.eq(1)
                         )
                     ],
 
                     # Decode instructions.
                     self.STATE_DECODE: [
-                        ip.adj.eq(0),
                         keep_op.eq(0),
 
                         Case(opclass, {
@@ -339,7 +334,6 @@ class CPU(Module, AutoCSR):
                                             regs[dst][32:64].eq(immediate)
                                         ),
                                         state.eq(self.STATE_OP_FETCH),
-                                        ip.adj.eq(1)
                                     ],
                                     "default": [
                                         error.eq(1),
@@ -371,7 +365,6 @@ class CPU(Module, AutoCSR):
                                         ]
                                     }),
                                     state.eq(self.STATE_OP_FETCH),
-                                    ip.adj.eq(1)
                                 )
                             ],
                             OPC_ST: [
@@ -403,7 +396,6 @@ class CPU(Module, AutoCSR):
                                     state.eq(self.STATE_DATA_FETCH)
                                 ).Else(
                                     state.eq(self.STATE_OP_FETCH),
-                                    ip.adj.eq(1)
                                 )
                             ],
                             OPC_STX: [
@@ -435,7 +427,6 @@ class CPU(Module, AutoCSR):
                                     state.eq(self.STATE_DATA_FETCH)
                                 ).Else(
                                     state.eq(self.STATE_OP_FETCH),
-                                    ip.adj.eq(1)
                                 )
                             ],
                             OPC_ALU: [
@@ -450,7 +441,6 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(div64.quotient),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_DIV_REG: [
@@ -462,7 +452,6 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(div64.quotient),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_MOD_IMM: [
@@ -474,7 +463,6 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(div64.remainder),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_MOD_REG: [
@@ -486,7 +474,6 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(div64.remainder),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_ARSH_IMM: [
@@ -503,7 +490,6 @@ class CPU(Module, AutoCSR):
                                             regs[dst].eq(arsh64.out & 0xffffffff),
                                             arsh64.stb.eq(0),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_ARSH_REG: [
@@ -520,7 +506,6 @@ class CPU(Module, AutoCSR):
                                             regs[dst].eq(arsh64.out & 0xffffffff),
                                             arsh64.stb.eq(0),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_LSH_IMM: [
@@ -534,7 +519,6 @@ class CPU(Module, AutoCSR):
                                             regs[dst].eq(arsh64.out & 0xffffffff),
                                             arsh64.stb.eq(0),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_LSH_REG: [
@@ -548,7 +532,6 @@ class CPU(Module, AutoCSR):
                                             regs[dst].eq(arsh64.out & 0xffffffff),
                                             arsh64.stb.eq(0),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_RSH_IMM: [
@@ -562,7 +545,6 @@ class CPU(Module, AutoCSR):
                                             regs[dst].eq(arsh64.out & 0xffffffff),
                                             arsh64.stb.eq(0),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_RSH_REG: [
@@ -576,7 +558,6 @@ class CPU(Module, AutoCSR):
                                             regs[dst].eq(arsh64.out & 0xffffffff),
                                             arsh64.stb.eq(0),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     "default": [
@@ -694,7 +675,6 @@ class CPU(Module, AutoCSR):
                                             ]
                                         }),
                                         state.eq(self.STATE_OP_FETCH),
-                                        ip.adj.eq(1)
                                     ]
                                 })
                             ],
@@ -704,104 +684,91 @@ class CPU(Module, AutoCSR):
                                     "default": [
                                         Case(opcode, {
                                             EBPF_OP_JA: [
-                                                ip.adj.eq(offset_s+1)
+                                                ic.adr.eq(ic.ip+offset_s+1),
+                                                ic.we.eq(1)
                                             ],
                                             EBPF_OP_JEQ_IMM: [
                                                 If(regs[dst] == immediate,
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JEQ_REG: [
                                                 If(regs[dst] == regs[src],
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JGT_IMM: [
                                                 If(regs[dst] > immediate,
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JGT_REG: [
                                                 If(regs[dst] > regs[src],
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JGE_IMM: [
                                                 If(regs[dst] >= immediate,
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JGE_REG: [
                                                 If(regs[dst] >= regs[src],
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JSET_IMM: [
                                                 If(regs[dst] & immediate,
-                                                    ip.adj.eq(offset+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JSET_REG: [
                                                 If(regs[dst] & regs[src],
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JNE_IMM: [
                                                 If(regs[dst] != immediate,
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JNE_REG: [
                                                 If(regs[dst] != regs[src],
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JSGT_IMM: [
                                                 If(dst_reg_32_s > immediate_s,
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JSGT_REG: [
                                                 If(dst_reg_32_s > src_reg_32_s,
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JSGE_IMM: [
                                                 If(dst_reg_32_s >= immediate_s,
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JSGE_REG: [
                                                 If(dst_reg_32_s >= src_reg_32_s,
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_EXIT: [
@@ -809,58 +776,50 @@ class CPU(Module, AutoCSR):
                                             ],
                                             EBPF_OP_JLT_IMM: [
                                                 If(regs[dst] < immediate,
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JLT_REG: [
                                                 If(regs[dst] < regs[src],
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JLE_IMM: [
                                                 If(regs[dst] <= immediate,
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JLE_REG: [
                                                 If(regs[dst] <= regs[src],
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JSLT_IMM: [
                                                 If(dst_reg_32_s < immediate_s,
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JSLT_REG: [
                                                 If(dst_reg_32_s < src_reg_32_s,
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JSLE_IMM: [
                                                 If(dst_reg_32_s <= immediate_s,
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             EBPF_OP_JSLE_REG: [
                                                 If(dst_reg_32_s <= src_reg_32_s,
-                                                    ip.adj.eq(offset_s+1)
-                                                ).Else(
-                                                    ip.adj.eq(1)
+                                                    ic.adr.eq(ic.ip+offset_s+1),
+                                                    ic.we.eq(1)
                                                 )
                                             ],
                                             "default": [
@@ -888,7 +847,6 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(div64.quotient),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_DIV64_REG: [
@@ -900,7 +858,6 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(div64.quotient),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_MOD64_IMM: [
@@ -912,7 +869,6 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(div64.remainder),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_MOD64_REG: [
@@ -924,7 +880,6 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(div64.remainder),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_ARSH64_IMM: [
@@ -938,7 +893,6 @@ class CPU(Module, AutoCSR):
                                             regs[dst].eq(arsh64.out),
                                             arsh64.stb.eq(0),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_ARSH64_REG: [
@@ -952,7 +906,6 @@ class CPU(Module, AutoCSR):
                                             regs[dst].eq(arsh64.out),
                                             arsh64.stb.eq(0),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_LSH64_IMM: [
@@ -966,7 +919,6 @@ class CPU(Module, AutoCSR):
                                             regs[dst].eq(arsh64.out),
                                             arsh64.stb.eq(0),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_LSH64_REG: [
@@ -980,7 +932,6 @@ class CPU(Module, AutoCSR):
                                             regs[dst].eq(arsh64.out),
                                             arsh64.stb.eq(0),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_RSH64_IMM: [
@@ -994,7 +945,6 @@ class CPU(Module, AutoCSR):
                                             regs[dst].eq(arsh64.out),
                                             arsh64.stb.eq(0),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     EBPF_OP_RSH64_REG: [
@@ -1008,7 +958,6 @@ class CPU(Module, AutoCSR):
                                             regs[dst].eq(arsh64.out),
                                             arsh64.stb.eq(0),
                                             state.eq(self.STATE_OP_FETCH),
-                                            ip.adj.eq(1)
                                         )
                                     ],
                                     "default": [
@@ -1064,7 +1013,6 @@ class CPU(Module, AutoCSR):
                                             ]
                                         }),
                                         state.eq(self.STATE_OP_FETCH),
-                                        ip.adj.eq(1)
                                     ]
                                 })
                             ]
@@ -1115,7 +1063,7 @@ class CPU(Module, AutoCSR):
 
 # No actual tests. These are performed using unittests from test directory.
 # This instead just starts the CPU and executes the sample program and
-# generates a  VCD file for inspection.
+# generates a VCD file for inspection.
 
 # Top-level CPU test method.
 def cpu_test(cpu):

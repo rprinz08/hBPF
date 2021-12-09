@@ -1,0 +1,78 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Thu Dec  9 19:07:50 2021
+[*]
+[dumpfile] "/home/prinz/projects/processors/HDL/work/litex/hBPF.github/source/fpga/cpu_fetch.vcd"
+[dumpfile_mtime] "Thu Dec  9 19:07:32 2021"
+[dumpfile_size] 489102
+[savefile] "/home/prinz/projects/processors/HDL/work/litex/hBPF.github/source/fpga/cpu_fetch.gtkw"
+[timestart] 72
+[size] 1855 1056
+[pos] -1 -1
+*-4.017474 105 -1 -1 455 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 307
+[signals_width] 254
+[sst_expanded] 1
+[sst_vpaned_height] 318
+@28
+CPU_Fetch.sys_clk
+CPU_Fetch.reset_n
+@800200
+-Fetch
+@28
+CPU_Fetch.re
+CPU_Fetch.we
+@22
+CPU_Fetch.adr0[31:0]
+CPU_Fetch.instruction[63:0]
+CPU_Fetch.cache_addr[31:0]
+CPU_Fetch.ip[31:0]
+@28
+CPU_Fetch.valid
+@25
+CPU_Fetch.level[2:0]
+@1000200
+-Fetch
+@800200
+-IP
+@1000200
+-IP
+@800200
+-Memory
+@28
+[color] 3
+CPU_Fetch.stb
+[color] 3
+CPU_Fetch.ack
+@22
+[color] 3
+CPU_Fetch.dat_r[63:0]
+[color] 3
+CPU_Fetch.adr1[30:0]
+@1000200
+-Memory
+@800200
+-Cache
+@28
+[color] 2
+CPU_Fetch.reset
+[color] 2
+CPU_Fetch.resetablesyncfifo_readable
+@22
+[color] 2
+CPU_Fetch.resetablesyncfifo_dout[63:0]
+@28
+[color] 2
+CPU_Fetch.resetablesyncfifo_re
+[color] 2
+CPU_Fetch.resetablesyncfifo_writable
+@22
+[color] 2
+CPU_Fetch.resetablesyncfifo_din[63:0]
+@28
+[color] 2
+CPU_Fetch.resetablesyncfifo_we
+@1000200
+-Cache
+[pattern_trace] 1
+[pattern_trace] 0

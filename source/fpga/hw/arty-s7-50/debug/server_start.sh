@@ -2,8 +2,8 @@
 
 S=`basename $0`
 P=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-PIDF="/var/run/litex_server.pid"
-LOGF="/var/log/litex_server.log"
+PIDF="${P}/litex_server.pid"
+LOGF="${P}/litex_server.log"
 TARGET_TYPE="uart"
 
 . ./wb_lib
@@ -13,27 +13,27 @@ if [ -f $PIDF ]; then
     exit 1
 fi
 
-if (( $EUID != 0 )); then
-    if whereis sudo &>/dev/null; then
-        sudo -H $0 $*
-        exit
-    else
-        echo "'sudo' utility not found."
-        echo "You will need to run this script as root."
-        exit
-    fi
-fi
+#if (( $EUID != 0 )); then
+#    if whereis sudo &>/dev/null; then
+#        sudo -H $0 $*
+#        exit
+#    else
+#        echo "'sudo' utility not found."
+#        echo "You will need to run this script as root."
+#        exit
+#    fi
+#fi
 
 
 # Uncomment the following lines to use 'litex_server' as Wishbone proxy
 # (ensure that it is on your path)
 DEBUG=--debug
 if [ "$1x" == "fgx" ]; then
-	litex_server.py \
+	lxserver \
 		$DEBUG \
 		--$TARGET_TYPE --uart-port=$TARGET_PORT --uart-baudrate=$TARGET_SPEED
 else
-	litex_server.py \
+	lxserver \
 		$DEBUG \
 		--$TARGET_TYPE --uart-port=$TARGET_PORT --uart-baudrate=$TARGET_SPEED \
 		>$LOGF 2>&1 </dev/null &

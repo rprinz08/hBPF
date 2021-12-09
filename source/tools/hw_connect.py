@@ -81,6 +81,26 @@ class HW_Connect:
         data = self.read(self.regs.hbpf_csr_r0.addr, length=2)
         return (data[0] << 32 | data[1])
 
+    def cpu_get_R6(self):
+        data = self.read(self.regs.hbpf_csr_r6.addr, length=2)
+        return (data[0] << 32 | data[1])
+
+    def cpu_get_R7(self):
+        data = self.read(self.regs.hbpf_csr_r7.addr, length=2)
+        return (data[0] << 32 | data[1])
+
+    def cpu_get_R8(self):
+        data = self.read(self.regs.hbpf_csr_r8.addr, length=2)
+        return (data[0] << 32 | data[1])
+
+    def cpu_get_R9(self):
+        data = self.read(self.regs.hbpf_csr_r9.addr, length=2)
+        return (data[0] << 32 | data[1])
+
+    def cpu_get_R10(self):
+        data = self.read(self.regs.hbpf_csr_r10.addr, length=2)
+        return (data[0] << 32 | data[1])
+
     def cpu_set_R1(self, value):
         self.write(self.regs.hbpf_csr_r1.addr, (value >> 32) & 0xffffffff)
         self.write(self.regs.hbpf_csr_r1.addr + 4, (value & 0xffffffff))
@@ -106,7 +126,7 @@ class HW_Connect:
         return (data[0] << 32 | data[1])
 
     def cpu_load_pgm(self, data):
-        self.write(self.bases.hbpf_pgm_mem, data)
+        self.write(self.bases.hbpf_ic_pgm_mem, data)
 
     def cpu_load_data(self, data):
         self.write(self.bases.hbpf_data_mem, data)

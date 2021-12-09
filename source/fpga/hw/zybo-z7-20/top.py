@@ -101,7 +101,7 @@ class Top(SoCMini):
                                     data_init=data_mem_data, max_data_words=2048,
                                     debug=True, call_handler=call_handler)
         self.add_csr("hbpf")
-        self.csr.add("hbpf_pgm_mem", use_loc_if_exists=True)
+        self.csr.add("hbpf_ic_pgm_mem", use_loc_if_exists=True)
         self.csr.add("hbpf_data_mem", use_loc_if_exists=True)
 
         counter = Signal(26)
