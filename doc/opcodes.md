@@ -1,6 +1,16 @@
 # hBPF Op-Codes
 
-The following table lists hBPF opcodes and the clock cycles they need.
+An overview of opcodes and the clock cycles they need:
+
+|OpCodes|Cycles|%|
+|---|---|---|
+|34|2|36.95 %|
+|1|4|1.08 %|
+|12|5|13.04 %|
+|24|6|26.08 %|
+|21|>6|22.82 %|
+
+The following tables lists hBPF opcodes and the clock cycles they need.
 
 ## ALU 64-Bit
 
