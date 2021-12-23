@@ -3,5 +3,4 @@
 . ./wb_lib
 
 # hbpf_pgm_mem
-dump 0x00000800 20
-
+dump 0x00002800 20

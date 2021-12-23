@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import sys
-import re
 # add search paths seen from project root folder
 # (used for vscode test integration)
 sys.path.insert(0, 'source')
@@ -15,6 +14,7 @@ import unittest
 import colour_runner.runner
 import os
 import gc
+import re
 import tempfile
 import struct
 import re

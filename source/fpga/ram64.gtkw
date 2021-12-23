@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Thu Oct  7 18:26:36 2021
+[*] Sat Dec 11 17:41:37 2021
 [*]
-[dumpfile] "/home/prinz/projects/processors/HDL/work/litex/hBPF/source/fpga/ram64.vcd"
-[dumpfile_mtime] "Tue Oct  5 20:00:30 2021"
-[dumpfile_size] 27537
-[savefile] "/home/prinz/projects/processors/HDL/work/litex/hBPF/source/fpga/ram64.gtkw"
+[dumpfile] "/home/prinz/projects/processors/HDL/work/litex/hBPF.github/source/fpga/ram64.vcd"
+[dumpfile_mtime] "Sat Dec 11 17:40:58 2021"
+[dumpfile_size] 25069
+[savefile] "/home/prinz/projects/processors/HDL/work/litex/hBPF.github/source/fpga/ram64.gtkw"
 [timestart] 0
 [size] 1855 1056
 [pos] -1 -1
-*-5.418436 25 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-4.418436 5 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [sst_width] 235
 [signals_width] 304
 [sst_expanded] 1
@@ -21,17 +21,7 @@ RAM64.stb
 @22
 [color] 2
 RAM64.adr[30:0]
-@28
-[color] 2
-RAM64.we
-[color] 2
-RAM64.ack
-@22
 RAM64.dat_r[63:0]
-RAM64.dat_w[63:0]
-@29
-RAM64.wait[1:0]
-@22
 [color] 5
 RAM64.mem_data_0[31:0]
 [color] 5
@@ -60,10 +50,6 @@ RAM64.port_re
 RAM64.port_dat_r[31:0]
 [color] 3
 RAM64.port2_adr[6:0]
-@28
-[color] 3
-RAM64.port2_re
-@22
 [color] 3
 RAM64.port2_dat_r[31:0]
 [pattern_trace] 1

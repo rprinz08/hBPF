@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Fri Sep 24 20:55:05 2021
+[*] Wed Dec 22 15:47:48 2021
 [*]
-[dumpfile] "/home/prinz/projects/processors/HDL/work/litex/hBPF/source/fpga/cpu.vcd"
-[dumpfile_mtime] "Fri Sep 24 20:52:08 2021"
-[dumpfile_size] 667777
-[savefile] "/home/prinz/projects/processors/HDL/work/litex/hBPF/source/fpga/cpu.gtkw"
+[dumpfile] "/home/prinz/projects/processors/HDL/work/litex/hBPF.github/source/fpga/cpu.vcd"
+[dumpfile_mtime] "Wed Dec 22 15:47:13 2021"
+[dumpfile_size] 652281
+[savefile] "/home/prinz/projects/processors/HDL/work/litex/hBPF.github/source/fpga/cpu.gtkw"
 [timestart] 0
 [size] 1855 1056
 [pos] -1 -1
-*-4.521939 135 115 165 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-4.521939 55 115 165 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [sst_width] 235
 [signals_width] 309
 [sst_expanded] 1
@@ -27,6 +27,8 @@ CPU.error
 CPU.ticks[63:0]
 @24
 CPU.state[2:0]
+@23
+CPU.ip[31:0]
 @1000200
 -CPU State
 @800200
@@ -75,26 +77,5 @@ CPU.regs9[63:0]
 CPU.regs10[63:0]
 @1000200
 -Registers
-@800200
--Memory
-@1000200
--Memory
-@800200
--ins_cache
-@28
-CPU.ic_valid
-CPU.ic_re
-@22
-CPU.ic_instruction[63:0]
-@28
-CPU.ic_reset
-CPU.ic_reset_n
-CPU.ic_we
-@22
-CPU.ic_adr0[31:0]
-@25
-CPU.ic_level[2:0]
-@1000200
--ins_cache
 [pattern_trace] 1
 [pattern_trace] 0

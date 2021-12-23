@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import sys
-import re
 # add search paths seen from project root folder
 # (used for vscode test integration)
 sys.path.insert(0, 'source')
@@ -15,6 +14,7 @@ import unittest
 import colour_runner.runner
 import os
 import gc
+import re
 import tempfile
 import struct
 import re
@@ -206,6 +206,11 @@ class TestFPGA_Sim(unittest.TestCase):
             halt = (yield cpu.halt)
             error = (yield cpu.error)
             r0 = (yield cpu.r0)
+            r6 = (yield cpu.r6)
+            r7 = (yield cpu.r7)
+            r8 = (yield cpu.r8)
+            r9 = (yield cpu.r9)
+            r10 = (yield cpu.r10)
             yield
             if not halt:
                 clk_cnt += 1
@@ -215,6 +220,10 @@ class TestFPGA_Sim(unittest.TestCase):
             clk_cnt,
             "LOW" if halt == 0 else "HIGH",
             "LOW" if error == 0 else "HIGH", r0, r0))
+
+        print("R6: ({:20}, 0x{:016x}), R7: ({:20}, 0x{:016x})".format(r6, r6, r7, r7))
+        print("R8: ({:20}, 0x{:016x}), R9: ({:20}, 0x{:016x})".format(r8, r8, r9, r9))
+        print("R10:({:20}, 0x{:016x})".format(r10, r10))
 
         # Write clock cycles for this test to statistics file
         if stat_file is not None:

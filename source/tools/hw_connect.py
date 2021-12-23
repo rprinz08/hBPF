@@ -126,7 +126,7 @@ class HW_Connect:
         return (data[0] << 32 | data[1])
 
     def cpu_load_pgm(self, data):
-        self.write(self.bases.hbpf_ic_pgm_mem, data)
+        self.write(self.bases.hbpf_pgm_mem, data)
 
     def cpu_load_data(self, data):
         self.write(self.bases.hbpf_data_mem, data)

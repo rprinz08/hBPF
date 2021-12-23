@@ -1,13 +1,8 @@
-#!/usr/bin/env python3
-
 import sys
-# add search paths when run from inside folder
-# (used when running test directly)
 sys.path.insert(0, '..')
 
 import os
 from migen import *
-from litex.soc.interconnect.csr import AutoCSR, _make_gatherer, memprefix
 from tools.common import *
 
 
@@ -426,19 +421,19 @@ def ram_test8(mem):
     if mem.write_capable:
 
         # Test writing data to RAM.
-        yield from ram_write_ut(mem, 0x00, 0x01) # 1
+        yield from ram_write_ut(mem, 0x00, 0x01)
         yield from ram_write_ut(mem, 0x01, 0x11)
         yield from ram_write_ut(mem, 0x02, 0x22)
         yield from ram_write_ut(mem, 0x03, 0x33)
         yield from ram_write_ut(mem, 0x04, 0x44)
 
-        yield from ram_write_ut(mem, 0x05, 0x6655, data_width=2) # 2
+        yield from ram_write_ut(mem, 0x05, 0x6655, data_width=2)
         yield from ram_write_ut(mem, 0x07, 0x8877, data_width=2)
 
-        yield from ram_write_ut(mem, 0x09, 0xccbbaa99, data_width=4) # 4
+        yield from ram_write_ut(mem, 0x09, 0xccbbaa99, data_width=4)
         yield from ram_write_ut(mem, 0x0d, 0x00ffeedd, data_width=4)
 
-        yield from ram_write_ut(mem, 0x20, 0x2827262524232221, data_width=8) # 8
+        yield from ram_write_ut(mem, 0x20, 0x2827262524232221, data_width=8)
         yield from ram_write_ut(mem, 0x30, 0x3837363534333231, data_width=8)
 
         yield from ram_write_ut(mem, 0xd8, 0xD8)

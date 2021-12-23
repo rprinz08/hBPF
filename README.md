@@ -50,10 +50,13 @@ insights and perform experiments.
 
 * All unit-tests pass
 * Can process binaries created with assembler or C (LLVM) without any changes
-* Not optimized
-    * This is a work in progress.
+* Partially optimized
+    * This is a constant work in progress ...
     * Statistic information per test case is collected as described [here](doc/statistics.md).
-    * Clock cycles per op-code are also [available](doc/opcodes.md).
+    * Clock cycles per op-code are [available here](doc/opcodes.md).
+
+  Many op-codes require 1 clock cycle, jumps (conditional and unconditional) require 2 clock cycles and math op-codes like `mod` or `div` require the most clock cycles to complete.
+
 * no stack
 
 Additional infos can be found in the [Blog](https://www.min.at/hbpf).

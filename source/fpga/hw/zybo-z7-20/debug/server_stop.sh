@@ -2,7 +2,7 @@
 
 S=`basename $0`
 P=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-PIDF="/var/run/litex_server.pid"
+PIDF="${P}/litex_server.pid"
 
 if [ ! -f $PIDF ]; then
     echo "LiteX server NOT running"

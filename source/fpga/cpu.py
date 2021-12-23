@@ -1,15 +1,11 @@
 import sys
 sys.path.insert(0, '..')
 
-import os
-import math
-import struct
 from migen import *
 from litex.soc.interconnect.csr import *
 from fpga.constants import *
 from fpga.ram import *
 from fpga.ram64 import *
-from fpga.cpu_fetch import *
 from fpga.math.divide import Divider
 from fpga.math.shift import Shifter
 
@@ -51,12 +47,14 @@ class CPU(Module, AutoCSR):
         # Result register R0.
         self.csr_r0 = csr_r0 = CSRStatus(64)
 
+        # Input registers.
         self.csr_r1 = csr_r1 = CSRStorage(64)
         self.csr_r2 = csr_r2 = CSRStorage(64)
         self.csr_r3 = csr_r3 = CSRStorage(64)
         self.csr_r4 = csr_r4 = CSRStorage(64)
         self.csr_r5 = csr_r5 = CSRStorage(64)
 
+        # Output registers.
         self.csr_r6 = csr_r6 = CSRStatus(64)
         self.csr_r7 = csr_r7 = CSRStatus(64)
         self.csr_r8 = csr_r8 = CSRStatus(64)
@@ -70,7 +68,7 @@ class CPU(Module, AutoCSR):
         # bit 0 - reset_n
         self.csr_ctl = csr_ctl = CSRStorage(8)
 
-        # Register bank with direct accessors for each register in bank.
+        # Create register bank with direct accessors for each register in bank.
         self.regs = regs = Array(Signal(64) for i in range(self.MAX_REGS))
         for i in range(self.MAX_REGS):
             setattr(self, "r{}".format(i), regs[i])
@@ -121,16 +119,19 @@ class CPU(Module, AutoCSR):
         dst_reg_32 = Signal(32)
         dst_reg_32_s = Signal((32, True))
 
+        ip = Signal(32)
+        ip_next = Signal(32)
+
+        # hbpf program memory.
+        self.submodules.pgm = pgm = RAM64(
+                                max_words=max_pgm_words,
+                                init=pgm_init,
+                                debug=debug)
+
         # hbpf data memory (e.g packet data).
         self.submodules.data = data = RAM(max_words=max_data_words,
                                 init=data_init, write_capable=True,
                                 csr_access=True,
-                                debug=debug)
-
-        # Instruction cache (contains instruction pointer and program memory)
-        self.submodules.ic = ic = CPU_Fetch(
-                                max_words=max_pgm_words,
-                                init=pgm_init,
                                 debug=debug)
 
         # Math divider for 32 and 64 bit.
@@ -139,7 +140,7 @@ class CPU(Module, AutoCSR):
         # Logic and arithmetic shifter.
         self.submodules.arsh64 = arsh64 = Shifter(data_width=64)
 
-        # Combinatorial logic.
+        #region Combinatorial logic.
         self.comb += [
             # Set/get CPU CSR status registers.
             csr_status.status[0].eq(reset_n_int),
@@ -167,9 +168,6 @@ class CPU(Module, AutoCSR):
             # |opcode  | src| dst|          offset|               immediate|
             # +--------+----+----+----------------+------------------------+
             # 63     56   52   48               32                        0
-
-            # If modifying this don't forget to also check
-            # state STATE_OP_FETCH
 
             immediate.eq(Cat(instruction[24:32],
                          instruction[16:24],
@@ -199,7 +197,10 @@ class CPU(Module, AutoCSR):
             dst_reg_s.eq(regs[dst]),
             dst_reg_32.eq(regs[dst]),
             dst_reg_32_s.eq(regs[dst]),
+
+            pgm.adr.eq(ip_next),
         ]
+        #endregion
 
         #region CALL_HANDLER
         # If a call handler is provided for this CPU instance ...
@@ -227,7 +228,10 @@ class CPU(Module, AutoCSR):
                         halt.eq(1)
                     ).Else(
                         self.r0.eq(self.call_handler.ret),
-                        state.eq(self.STATE_OP_FETCH),
+                        state.eq(self.STATE_DECODE),
+                        ip_next.eq(ip_next + 1),
+                        ip.eq(ip_next),
+                        instruction.eq(pgm.dat_r),
                     )
                 )
             ]
@@ -237,35 +241,29 @@ class CPU(Module, AutoCSR):
         if simulation:
             self.state = state
             self.opcode = opcode
-            self.ins_ptr = Signal(32)
-            self.ic_reset_n = Signal()
-            self.ic_valid = Signal()
+            self.instruction = instruction
+            self.ip = Signal(32)
             self.comb += [
-                self.ins_ptr.eq(ic.ip),
-                self.ic_valid.eq(ic.valid),
-                ic.reset_n.eq(self.ic_reset_n),
-            ]
-        else:
-            self.comb += [
-                ic.reset_n.eq(reset_n_int)
+                self.ip.eq(ip),
             ]
         #endregion
 
         # Sync logic.
         self.sync += [
-            ic.re.eq(0),
-            ic.we.eq(0),
 
             # Reset state.
             If(~reset_n_int,
-                instruction.eq(0),
-                keep_op.eq(0),
-                keep_dst.eq(0),
-                state.eq(self.STATE_OP_FETCH),
                 ticks.eq(0),
                 error.eq(0),
                 halt.eq(0),
-                self.debug.eq(0),
+
+                ip_next.eq(0),
+                ip.eq(0),
+                instruction.eq(pgm.dat_r),
+                state.eq(self.STATE_OP_FETCH),
+
+                keep_op.eq(0),
+                keep_dst.eq(0),
 
                 self.r0.eq(0),
 
@@ -294,8 +292,10 @@ class CPU(Module, AutoCSR):
                 error.eq(1),
                 halt.eq(1)
 
-            ).Elif(~ic.valid,
-                ticks.eq(ticks + 1),
+            # Check for incomplete LDDW instruction.
+            ).Elif((keep_op & instruction[56:64]) != 0,
+                error.eq(1),
+                halt.eq(1)
 
             # Process opcodes.
             ).Else(
@@ -310,16 +310,10 @@ class CPU(Module, AutoCSR):
                 Case(state, {
                     #region STATE_OP_FETCH
                     self.STATE_OP_FETCH: [
-                        If(ic.valid,
-                            instruction.eq(ic.instruction),
-                            state.eq(self.STATE_DECODE),
-                            ic.re.eq(1),
-                        ),
-                        # Check for invalid LDDW instruction
-                        If( (keep_op & ic.instruction[56:64]) != 0,
-                            error.eq(1),
-                            halt.eq(1)
-                        )
+                        ip_next.eq(ip_next + 1),
+                        ip.eq(ip_next),
+                        instruction.eq(pgm.dat_r),
+                        state.eq(self.STATE_DECODE)
                     ],
                     #endregion
 
@@ -341,7 +335,9 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst][32:64].eq(immediate)
                                         ),
-                                        state.eq(self.STATE_OP_FETCH),
+                                        ip_next.eq(ip_next + 1),
+                                        ip.eq(ip_next),
+                                        instruction.eq(pgm.dat_r),
                                     ],
                                     #endregion
                                     "default": [
@@ -383,7 +379,9 @@ class CPU(Module, AutoCSR):
                                             halt.eq(1)
                                         ]
                                     }),
-                                    state.eq(self.STATE_OP_FETCH),
+                                    ip_next.eq(ip_next + 1),
+                                    ip.eq(ip_next),
+                                    instruction.eq(pgm.dat_r),
                                 )
                             ],
                             #endregion
@@ -424,7 +422,9 @@ class CPU(Module, AutoCSR):
                                     }),
                                     state.eq(self.STATE_DATA_FETCH)
                                 ).Else(
-                                    state.eq(self.STATE_OP_FETCH),
+                                    ip_next.eq(ip_next + 1),
+                                    ip.eq(ip_next),
+                                    instruction.eq(pgm.dat_r),
                                 )
                             ],
                             #endregion
@@ -465,7 +465,9 @@ class CPU(Module, AutoCSR):
                                     }),
                                     state.eq(self.STATE_DATA_FETCH)
                                 ).Else(
-                                    state.eq(self.STATE_OP_FETCH),
+                                    ip_next.eq(ip_next + 1),
+                                    ip.eq(ip_next),
+                                    instruction.eq(pgm.dat_r),
                                 )
                             ],
                             #endregion
@@ -482,7 +484,9 @@ class CPU(Module, AutoCSR):
                                             div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.quotient),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -495,7 +499,9 @@ class CPU(Module, AutoCSR):
                                             div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.quotient),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -508,7 +514,9 @@ class CPU(Module, AutoCSR):
                                             div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.remainder),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -521,7 +529,9 @@ class CPU(Module, AutoCSR):
                                             div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.remainder),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -539,7 +549,9 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(arsh64.out & 0xffffffff),
                                             arsh64.stb.eq(0),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -557,7 +569,9 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(arsh64.out & 0xffffffff),
                                             arsh64.stb.eq(0),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -572,7 +586,9 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(arsh64.out & 0xffffffff),
                                             arsh64.stb.eq(0),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -587,7 +603,9 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(arsh64.out & 0xffffffff),
                                             arsh64.stb.eq(0),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -602,7 +620,9 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(arsh64.out & 0xffffffff),
                                             arsh64.stb.eq(0),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -617,7 +637,9 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(arsh64.out & 0xffffffff),
                                             arsh64.stb.eq(0),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -769,7 +791,9 @@ class CPU(Module, AutoCSR):
                                                 halt.eq(1)
                                             ]
                                         }),
-                                        state.eq(self.STATE_OP_FETCH),
+                                        ip_next.eq(ip_next + 1),
+                                        ip.eq(ip_next),
+                                        instruction.eq(pgm.dat_r),
                                     ]
                                 })
                             ],
@@ -781,191 +805,169 @@ class CPU(Module, AutoCSR):
                                     EBPF_OP_CALL: call_handler_actions,
                                     #endregion
                                     "default": [
+                                        state.eq(self.STATE_OP_FETCH),
                                         Case(opcode, {
                                             #region OP_JA
                                             EBPF_OP_JA: [
-                                                ic.adr.eq(ic.ip+offset_s+1),
-                                                ic.we.eq(1)
+                                                ip_next.eq(ip_next + offset_s),
                                             ],
                                             #endregion
                                             #region OP_JEQ_IMM
                                             EBPF_OP_JEQ_IMM: [
                                                 If(regs[dst] == immediate,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JEQ_REG
                                             EBPF_OP_JEQ_REG: [
                                                 If(regs[dst] == regs[src],
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JGT_IMM
                                             EBPF_OP_JGT_IMM: [
                                                 If(regs[dst] > immediate,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JGT_REG
                                             EBPF_OP_JGT_REG: [
                                                 If(regs[dst] > regs[src],
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JGE_IMM
                                             EBPF_OP_JGE_IMM: [
                                                 If(regs[dst] >= immediate,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JGE_REG
                                             EBPF_OP_JGE_REG: [
                                                 If(regs[dst] >= regs[src],
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JSET_IMM
                                             EBPF_OP_JSET_IMM: [
                                                 If(regs[dst] & immediate,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JSET_REG
                                             EBPF_OP_JSET_REG: [
                                                 If(regs[dst] & regs[src],
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JNE_IMM
                                             EBPF_OP_JNE_IMM: [
                                                 If(regs[dst] != immediate,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JNE_REG
                                             EBPF_OP_JNE_REG: [
                                                 If(regs[dst] != regs[src],
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JSGT_IMM
                                             EBPF_OP_JSGT_IMM: [
                                                 If(dst_reg_32_s > immediate_s,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JSGT_REG
                                             EBPF_OP_JSGT_REG: [
                                                 If(dst_reg_32_s > src_reg_32_s,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JSGE_IMM
                                             EBPF_OP_JSGE_IMM: [
                                                 If(dst_reg_32_s >= immediate_s,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JSGE_REG
                                             EBPF_OP_JSGE_REG: [
                                                 If(dst_reg_32_s >= src_reg_32_s,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_EXIT
                                             EBPF_OP_EXIT: [
-                                                halt.eq(1)
+                                                halt.eq(1),
                                             ],
                                             #endregion
                                             #region OP_JLT_IMM
                                             EBPF_OP_JLT_IMM: [
                                                 If(regs[dst] < immediate,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JLT_REG
                                             EBPF_OP_JLT_REG: [
                                                 If(regs[dst] < regs[src],
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JLE_IMM
                                             EBPF_OP_JLE_IMM: [
                                                 If(regs[dst] <= immediate,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JLE_REG
                                             EBPF_OP_JLE_REG: [
                                                 If(regs[dst] <= regs[src],
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JSLT_IMM
                                             EBPF_OP_JSLT_IMM: [
                                                 If(dst_reg_32_s < immediate_s,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JSLT_REG
                                             EBPF_OP_JSLT_REG: [
                                                 If(dst_reg_32_s < src_reg_32_s,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JSLE_IMM
                                             EBPF_OP_JSLE_IMM: [
                                                 If(dst_reg_32_s <= immediate_s,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
                                             #region OP_JSLE_REG
                                             EBPF_OP_JSLE_REG: [
                                                 If(dst_reg_32_s <= src_reg_32_s,
-                                                    ic.adr.eq(ic.ip+offset_s+1),
-                                                    ic.we.eq(1)
+                                                    ip_next.eq(ip_next + offset_s),
                                                 )
                                             ],
                                             #endregion
@@ -974,7 +976,7 @@ class CPU(Module, AutoCSR):
                                                 halt.eq(1)
                                             ]
                                         }),
-                                        state.eq(self.STATE_OP_FETCH)
+                                        ip.eq(ip_next),
                                     ]
                                 })
                             ],
@@ -998,7 +1000,9 @@ class CPU(Module, AutoCSR):
                                             div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.quotient),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -1011,7 +1015,9 @@ class CPU(Module, AutoCSR):
                                             div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.quotient),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -1024,7 +1030,9 @@ class CPU(Module, AutoCSR):
                                             div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.remainder),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -1037,7 +1045,9 @@ class CPU(Module, AutoCSR):
                                             div64.stb.eq(1),
                                         ).Else(
                                             regs[dst].eq(div64.remainder),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -1052,7 +1062,9 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(arsh64.out),
                                             arsh64.stb.eq(0),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -1067,7 +1079,9 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(arsh64.out),
                                             arsh64.stb.eq(0),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -1082,7 +1096,9 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(arsh64.out),
                                             arsh64.stb.eq(0),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -1097,7 +1113,9 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(arsh64.out),
                                             arsh64.stb.eq(0),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -1112,7 +1130,9 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(arsh64.out),
                                             arsh64.stb.eq(0),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -1127,7 +1147,9 @@ class CPU(Module, AutoCSR):
                                         ).Else(
                                             regs[dst].eq(arsh64.out),
                                             arsh64.stb.eq(0),
-                                            state.eq(self.STATE_OP_FETCH),
+                                            ip_next.eq(ip_next + 1),
+                                            ip.eq(ip_next),
+                                            instruction.eq(pgm.dat_r),
                                         )
                                     ],
                                     #endregion
@@ -1213,7 +1235,9 @@ class CPU(Module, AutoCSR):
                                                 halt.eq(1)
                                             ]
                                         }),
-                                        state.eq(self.STATE_OP_FETCH),
+                                        ip_next.eq(ip_next + 1),
+                                        ip.eq(ip_next),
+                                        instruction.eq(pgm.dat_r),
                                     ]
                                 })
                             ]
@@ -1250,7 +1274,7 @@ class CPU(Module, AutoCSR):
                                     halt.eq(1)
                                 ).Else(
                                     state.eq(self.STATE_DECODE),
-                                    div64_ack.eq(1)
+                                    div64_ack.eq(1),
                                 )
                             )
                         )

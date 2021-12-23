@@ -7,4 +7,3 @@ P="$( dirname "$( readlink -f "$0" )" )"
 
 python3 "./${Sx}.py"
 gtkwave "./${Sx}.vcd" "./${Sx}.gtkw" &
-

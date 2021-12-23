@@ -1,17 +1,9 @@
-#!/usr/bin/env python3
-
 import sys
-# add search paths when run from inside folder
-# (used when running test directly)
 sys.path.insert(0, '..')
 
 import os
 import math
-import struct
-from tools.helper import print_hex_list
 from migen import *
-from litex.soc.integration.soc import colorer, SoCRegion
-from litex.soc.interconnect import wishbone
 from litex.soc.interconnect.csr import AutoCSR
 from tools.common import *
 
@@ -19,38 +11,28 @@ from tools.common import *
 class RAM64(Module, AutoCSR):
 
     def __init__(self, max_words=None,
-                init=None, endianness="big", write_capable=False,
+                init=None, endianness="big",
                 debug=False):
 
         self.init = None
         self.words = None
         self.half_words = None
-        self.write_capable = write_capable
 
         if isinstance(max_words, int):
             self.words = max_words
             self.half_words = self.words * 2
 
-        self.stb = Signal()
-        self.ack = Signal()
-
-        self.wait = Signal(2)
-
         self.adr = Signal(31)
+
         self.dat_r = Signal(64)
 
-        # Keep write signals even if module is not write capable
-        # so that interface does not change
-        #if write_capable:
-        self.we = Signal()
-        self.dat_w = Signal(64)
-
         # # #
+
+        adr_hold = Signal(31)
 
         if debug:
             print("-"*50)
             print("RAM64")
-
 
         # 'words' specify the number of 64bit entities (words). 'half_words'
         # specify the number of 32bit entities. They can either be specified
@@ -112,66 +94,29 @@ class RAM64(Module, AutoCSR):
             self.specials.mem = Memory(32, self.words, init=self.init)
 
         self.specials.port = self.mem.get_port(has_re=True, async_read=True,
-            write_capable=write_capable)
+            write_capable=False)
 
         # Get next half word based on current word address
         self.specials.port2 = self.mem.get_port(has_re=True, async_read=True,
-                                write_capable=write_capable, we_granularity=0,
-                                mode=READ_FIRST if not write_capable else WRITE_FIRST)
+                                write_capable=False, we_granularity=0,
+                                mode=READ_FIRST)
 
         self.comb += [
             self.port2.adr.eq(self.port.adr + 1),
-            self.port2.re.eq(self.port.re),
-
             self.dat_r.eq(Cat(self.port2.dat_r, self.port.dat_r)),
-            self.ack.eq(self.port.re & ~self.wait & self.stb)
         ]
 
-        if not write_capable:
-            self.sync += [
-                self.wait.eq(0),
-                If(self.stb,
-                    If(~self.ack,
-                        If(self.port.re,
-                            self.port.re.eq(0),
-                        ).Else(
-                            self.port.adr.eq(self.adr << 1),
-                            self.port.re.eq(1)
-                        )
-                    )
-                ).Else(
-                    self.port.re.eq(0)
-                )
-            ]
-        else:
-            self.sync += [
-                If(self.stb,
-                    If(self.port.re,
-                        If(self.wait,
-                            self.wait.eq(self.wait -1)
-                        ).Else(
-                            self.port.re.eq(0),
-                            self.port.we.eq(0),
-                            self.port2.we.eq(0),
-                        )
-                    ).Else(
-                        self.port.adr.eq(self.adr << 1),
-                        self.port.re.eq(1),
+        self.comb += [
+            self.port.adr.eq(self.adr << 1),
+        ]
 
-                        If(self.we,
-                            self.port.dat_w.eq(self.dat_w[32:]),
-                            self.port.we.eq(1),
-
-                            self.port2.dat_w.eq(self.dat_w[0:32]),
-                            self.port2.we.eq(1),
-
-                            self.wait.eq(1)
-                        )
-                    )
-                ).Else(
-                    self.wait.eq(0)
-                )
-            ]
+        self.sync += [
+            self.port.re.eq(0),
+            If(~self.port.re,
+                adr_hold.eq(self.adr),
+                self.port.re.eq(1)
+            )
+        ]
 
 ##################
 # RAM testbench: #
@@ -180,46 +125,13 @@ class RAM64(Module, AutoCSR):
 p = 0
 f = 0
 
-# Perform an individual RAM write unit test.
-def ram_write_ut(mem, address, data):
-    global p, f
-
-    yield mem.adr.eq(address)
-    yield mem.dat_w.eq(data)
-    yield mem.we.eq(1)
-    yield mem.stb.eq(1)
-    yield
-
-    while (yield mem.ack) == 0:
-        yield
-
-    actual = yield mem.dat_r
-    if data != actual:
-        f += 1
-        print("\033[31mFAIL:\033[0m RAM[ 0x%08X ]  = "
-            "0x%016X (got: 0x%016X)"
-            %(address, data, actual))
-    else:
-        p += 1
-        print("\033[32mPASS:\033[0m RAM[ 0x%08X ]  = 0x%016X"
-            %(address, data))
-
-    yield mem.we.eq(0)
-    yield mem.stb.eq(0)
-    yield
-
-
-# Perform an inidividual RAM read unit test.
+# Perform an individual RAM read unit test.
 def ram_read_ut(mem, address, expected):
     global p, f
 
     # Set address.
     yield mem.adr.eq(address)
-    yield mem.stb.eq(1)
     yield
-
-    while (yield mem.ack) == 0:
-        yield
 
     actual = yield mem.dat_r
     if expected != actual:
@@ -232,7 +144,6 @@ def ram_read_ut(mem, address, expected):
         print("\033[32mPASS:\033[0m RAM[ 0x%08X ] == 0x%016X"
             %(address, expected))
 
-    yield mem.stb.eq(0)
     yield
 
 
@@ -250,14 +161,21 @@ def ram_test(mem):
         yield from ram_read_ut(mem, 0x01, 0xB406000000000000)
         yield from ram_read_ut(mem, 0x03, 0xDC00000010000000)
 
-    if mem.write_capable:
-        ## Test writing data to RAM.
-        yield from ram_write_ut(mem, 0x00, 0x0123456789ABCDEF)
-        yield from ram_write_ut(mem, 0xd8, 0xDEADBEEFDEC0FFEE)
+    # Continuos read
+    # Set address.
+    addr = 0
+    cnt = 5
+    yield mem.adr.eq(addr)
+    yield
 
-        ## Test reading data from RAM.
-        yield from ram_read_ut(mem, 0x00, 0x0123456789ABCDEF)
-        yield from ram_read_ut(mem, 0xd8, 0xDEADBEEFDEC0FFEE)
+    while cnt > 0:
+        addr += 1
+        cnt -= 1
+        yield mem.adr.eq(addr)
+        yield
+
+    for i in range(5):
+        yield
 
     # Done.
     yield
@@ -266,14 +184,8 @@ def ram_test(mem):
 
 # 'main' method to run a basic testbench.
 if __name__ == "__main__":
-    # Instantiate a writeable Mem module.
-    dut = RAM64(init="../../tests/samples/test_pgm_mem.bin", write_capable=True)
-
-    # Run the tests.
-    run_simulation(dut, ram_test(dut), vcd_name="ram64_rw.vcd")
-
     # Instantiate a read only Mem module.
-    dut = RAM64(init="../../tests/samples/test_pgm_mem.bin", write_capable=False)
+    dut = RAM64(init="../../tests/samples/test_pgm_mem.bin")
 
     # Run the tests.
-    run_simulation(dut, ram_test(dut), vcd_name="ram64_ro.vcd")
+    run_simulation(dut, ram_test(dut), vcd_name="ram64.vcd")

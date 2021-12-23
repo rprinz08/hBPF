@@ -1,13 +1,4 @@
-#!/usr/bin/env python3
-
-import sys
-# add search paths when run from inside folder
-# (used when running test directly)
-sys.path.insert(0, '..')
-
-import os
 import random
-import struct
 import math
 from migen import *
 
