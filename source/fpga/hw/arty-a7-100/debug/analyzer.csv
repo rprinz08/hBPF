@@ -1,0 +1,16 @@
+config,None,data_width,644
+config,None,depth,1024
+signal,0,hbpf_reset_n,1
+signal,0,hbpf_error,1
+signal,0,hbpf_halt,1
+signal,0,hbpf_debug,1
+signal,0,hbpf_regs0,64
+signal,0,hbpf_regs1,64
+signal,0,hbpf_regs2,64
+signal,0,hbpf_regs3,64
+signal,0,hbpf_regs4,64
+signal,0,hbpf_regs5,64
+signal,0,hbpf_regs7,64
+signal,0,hbpf_regs8,64
+signal,0,hbpf_regs9,64
+signal,0,hbpf_regs10,64

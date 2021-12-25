@@ -241,11 +241,12 @@ from LiteX.
 
 The LiteX hBPF implementation can be converted to
 Verilog and processed by toolchains for various
-target devices and boards. Included are two real
+target devices and boards. Included are three real
 hardware implementations for Xilinx devices
-(Spartan7 and Zynq) on
-[Arty-S7](https://reference.digilentinc.com/reference/programmable-logic/arty-s7/start) and
-[Zybo-Z7](https://reference.digilentinc.com/reference/programmable-logic/zybo-z7/start) boards.
+(Spartan7, Artix7 and Zynq) on
+[Arty-S7](https://digilent.com/reference/programmable-logic/arty-s7/start),
+[Arty-A7](https://digilent.com/reference/programmable-logic/arty-a7/start) and
+[Zybo-Z7](https://digilent.com/reference/programmable-logic/zybo-z7/start) boards.
 
 Based on the following overview, they can be used to
 test and debug hBPF and also to run the HW
@@ -409,6 +410,7 @@ Some examples on the included targets are provided:
 
 hBPF development targets
 * [Arty S7](source/fpga/hw/arty-s7-50/readme.md)
+* [Arty A7](source/fpga/hw/arty-a7-100/readme.md)
 * [Zybo Z7](source/fpga/hw/zybo-z7-20/readme.md)
 
 Packet processing with LiteETH and hBPF

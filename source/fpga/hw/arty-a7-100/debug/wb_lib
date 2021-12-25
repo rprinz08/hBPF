@@ -1,0 +1,25 @@
+#!/bin/bash
+
+source ./.config
+
+function mem()
+{
+	local adr=$1
+	local val=$2
+	wishbone-tool \
+		--serial "${TARGET_PORT}" \
+		--baud "${TARGET_SPEED}" \
+		--csr-csv csr.csv \
+		--hexdump \
+		--burst-length 4 \
+		$adr $val
+}
+
+function dump()
+{
+	echo "Dump ${2} words starting at ${1}"
+	for (( i=1; i<=$2; i++ )); do
+		mem $(( $1 + ( ( $i - 1 ) * 4 ) ))
+	done
+}
+
