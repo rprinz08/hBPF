@@ -128,6 +128,10 @@ class CPU(Module, AutoCSR):
                                 init=pgm_init,
                                 debug=debug)
 
+        # Note: To get optimum performance, disable CSR access for
+        # data memory. This is normally used for development
+        # and debugging.
+
         # hbpf data memory (e.g packet data).
         self.submodules.data = data = RAM(max_words=max_data_words,
                                 init=data_init, write_capable=True,
