@@ -103,7 +103,6 @@ fi
 
 # Uncomment the following lines to use 'wishbone-tool' as Wishbone proxy.
 #WBT="/usr/local/bin/wishbone-tool"
-WBT="/home/prinz/.cargo/bin/wishbone-tool"
 #if [ ! -z "$foreground" ]; then
 #   $WBT \
 #       --bind-addr localhost \
