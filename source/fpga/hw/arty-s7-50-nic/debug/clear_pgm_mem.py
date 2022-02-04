@@ -1,0 +1,1 @@
+../../../../../scripts/clear_pgm_mem.py

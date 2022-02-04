@@ -1,0 +1,1 @@
+../../../../../scripts/load_pgm_mem.py
