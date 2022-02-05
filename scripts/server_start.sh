@@ -11,7 +11,7 @@ TARGET_TYPE="uart"
 CONFIG="./.config"
 
 _isRunningPid() {
-    ps -o pid= "$1" 2>/dev/null | grep -x "$1" >/dev/null 2>&1
+    ps -o pid= "$1" 2>/dev/null | grep -e '^\s*'"$1" >/dev/null 2>&1
 }
 
 function usage() {

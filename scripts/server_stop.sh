@@ -8,7 +8,7 @@ P=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 PIDF="/tmp/litex_server.pid"
 
 _isRunningPid() {
-    ps -o pid= "$1" 2>/dev/null | grep -x "$1" >/dev/null 2>&1
+    ps -o pid= "$1" 2>/dev/null | grep -e '^\s*'"$1" >/dev/null 2>&1
 }
 
 if [ ! -f "$PIDF" ]; then
