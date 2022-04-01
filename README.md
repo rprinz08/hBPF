@@ -30,7 +30,7 @@ to __classic BPF (cBPF)__. Nowadays, the Linux Kernel runs
 eBPF only and loaded cBPF bytecode is transparently
 translated into eBPF before execution.
 
-The *hPBF* project now implements most of eBPF features in
+The *hBPF* project now implements most of eBPF features in
 hardware (FPGA).
 
 ## Goals
