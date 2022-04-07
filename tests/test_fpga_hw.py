@@ -41,7 +41,8 @@ class TestFPGA_HW(unittest.TestCase):
     # relative to this test file
     #CFG_PATH = "../source/fpga/hw/arty-s7-50/debug"
     #CFG_PATH = "../source/fpga/hw/arty-s7-50-nic/debug"
-    CFG_PATH = "../source/fpga/hw/arty-a7-100/debug"
+    #CFG_PATH = "../source/fpga/hw/arty-a7-100/debug"
+    CFG_PATH = "../source/fpga/hw/arty-a7-100-net/debug"
     #CFG_PATH = "../source/fpga/hw/zybo-z7-20/debug"
     # --------------------------------------------------------------------------
 

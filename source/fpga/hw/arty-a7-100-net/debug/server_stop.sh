@@ -1,0 +1,1 @@
+../../../../../scripts/server_stop.sh

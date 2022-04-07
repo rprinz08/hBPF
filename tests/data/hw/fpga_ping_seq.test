@@ -1,5 +1,5 @@
 -- asm
-# This program monitors received IP4 ICMP Echo/Ping requests
+# This program monitors received IP4/IPv6 ICMP(6) Echo/Ping requests
 # and checks that their sequence number is consistent. It sets the
 # error LED at the first lost request.
 #
@@ -8,12 +8,15 @@
 #
 # This program needs call handler support for some hBPF CPU extensions. This
 # means the FPGA must run a bitstream containing this call handler extensions.
-# See also `source/fpga/hw/arty-s7-50-nic/call_handler.py`
+# See also `source/fpga/hw/arty-a7-100-net/call_handler.py`
 #
 # This file is not part of normal test suite (thus disabled for all tests)
 # but is used to easily make changes and try out things manually for
-# source/fpga/hw/arty-s7-50-nic for an example.
+# source/fpga/hw/arty-a7-100-net for an example.
 # To enable set 'disable_hw_test' to 0
+
+# ------------------------------------------------------------------------------
+# Ethernet
 
 # Get Ethertype from received packet into R4
 mov32 r1, 12
@@ -21,25 +24,58 @@ ldxh r4, [r1]
 be16 r4
 
 # Check if its value is 0x0800 (= IP4)
-jeq r4, 0x0800, +1
-ja +25
+jeq r4, 0x0800, +2      #(IP4)
+jeq r4, 0x86dd, +11     #(IP6)
+ja +36                  #(EXIT)
+
+
+# ------------------------------------------------------------------------------
+# IP4
 
 # Check if its an IP4 ICMP packet
+#IP4:
 mov32 r1, 23
 ldxb r3, [r1]
-jne r3, 1, +22
+jne r3, 1, +33          #(EXIT)
 
 # Check if IP4 ICMP Echo (Ping) request
 mov32 r1, 34
 ldxb r3, [r1]
-jne r3, 8, +19
+jne r3, 8, +30          #(EXIT)
 
 # Get sequence number of request into R5
 mov32 r1, 40
 ldxh r5, [r1]
 be16 r5
 
+ja +9                   #(GET_LAST_SEQ)
+
+
+# ------------------------------------------------------------------------------
+# IPv6
+
+# Check if its an IPv6 ICMP6 packet
+#IP6:
+mov32 r1, 20
+ldxb r3, [r1]
+jne r3, 58, +23         #(EXIT)
+
+# Check if IPv6 ICMP6 Echo (Ping) request
+mov32 r1, 54
+ldxb r3, [r1]
+jne r3, 128, +20        #(EXIT)
+
+# Get sequence number of request into R5
+mov32 r1, 60
+ldxh r5, [r1]
+be16 r5
+
+
+# ------------------------------------------------------------------------------
+# Process sequence numbers
+
 # Read last sequence from store into R6
+#GET_LAST_SEQ:
 mov r1, 0
 call 0xff000003
 mov r6, r0
@@ -47,30 +83,35 @@ mov r6, r0
 # If sequence smaller than last stored,
 # set sequence as new start (just store)
 # and clear LEDs
-jle r5, r6, +1
-ja +3
+jle r5, r6, +1          #(CLEAR_LEDS)
+ja +3                   #(CHECK_SEQ)
 
 # Clear LEDs
+#CLEAR_LEDS:
 mov r1, 0
 call 0xff000001
-ja +5
+ja +5                   #(STORE_SEQ)
 
 # If sequence > then last sequence + 1 then
 # we missed a ping, set packet error LED
+#CHECK_SEQ:
 add32 r6, 1
-jne r5, r6, +1
-ja +2
+jne r5, r6, +1          #(SET_ERROR)
+ja +2                   #(STORE_SEQ)
 
 # Set packet error LED
+#SET_ERROR:
 mov r1, 4
 call 0xff000001
 
 # Store new sequence number
+#STORE_SEQ:
 mov r1, 0
 mov r2, r5
 call 0xff000002
 
 # Return current sequence with R0
+#EXIT:
 mov r0, r6
 exit
 
@@ -92,4 +133,4 @@ graph = 0
 -- expected
 disable_emu_test = 1
 disable_sim_test = 1
-disable_hw_test = 1
+disable_hw_test = 0

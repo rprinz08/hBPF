@@ -1,0 +1,1 @@
+../../../../../scripts/server_start.sh

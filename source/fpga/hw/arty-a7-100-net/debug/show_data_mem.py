@@ -1,0 +1,1 @@
+../../../../../scripts/show_data_mem.py

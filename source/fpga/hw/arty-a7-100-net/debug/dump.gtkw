@@ -1,0 +1,82 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Sun Jan 23 15:12:07 2022
+[*]
+[dumpfile] "/home/prinz/projects/processors/HDL/work/litex/hBPF.github/source/fpga/hw/arty-a7-100-net/debug/dump.vcd"
+[dumpfile_mtime] "Sun Jan 23 12:41:02 2022"
+[dumpfile_size] 3884770
+[savefile] "/home/prinz/projects/processors/HDL/work/litex/hBPF.github/source/fpga/hw/arty-a7-100-net/debug/dump.gtkw"
+[timestart] 2750
+[size] 1855 1056
+[pos] -1 -1
+*-4.000000 2802 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 282
+[signals_width] 350
+[sst_expanded] 1
+[sst_vpaned_height] 318
+@28
+[color] 5
+scope_clk
+[color] 5
+scope_trig
+@800200
+-Source
+@28
+__main___ethmac_source_ready
+__main___ethmac_source_valid
+__main___ethmac_source_first
+__main___ethmac_source_last
+__main___ethmac_source_payload_error
+__main___ethmac_source_payload_last_be
+@22
+__main___ethmac_source_payload_data[7:0]
+@1000200
+-Source
+@800200
+-Sink
+@28
+__main___sink_sink_ready
+__main___sink_sink_valid
+__main___sink_sink_first
+__main___sink_sink_last
+__main___sink_sink_payload_error
+__main___sink_sink_payload_last_be
+@22
+__main___sink_sink_payload_data[7:0]
+@1000200
+-Sink
+@800200
+-Data Mem
+@22
+[color] 3
+__main___data_ww[3:0]
+@28
+[color] 3
+__main___data_we0
+@29
+[color] 3
+__main___data_stb
+@22
+[color] 3
+__main___data_dat_w0[63:0]
+[color] 3
+__main___data_adr1[10:0]
+@28
+[color] 3
+__main___data_ack1
+@1000200
+-Data Mem
+@800200
+-CPU
+@28
+__main___reset_n
+__main___halt
+__main___error
+@22
+__main___regs0[63:0]
+@24
+__main___regs1[63:0]
+@1000200
+-CPU
+[pattern_trace] 1
+[pattern_trace] 0
