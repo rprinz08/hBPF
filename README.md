@@ -415,6 +415,7 @@ hBPF development targets
 
 Packet processing with LiteETH and hBPF
 * [Arty S7 MultiNIC](source/fpga/hw/arty-s7-50-nic/readme.md)
+* [Arty A7 Network](source/fpga/hw/arty-a7-100-net/readme.md)
 
 ## Misc
 
