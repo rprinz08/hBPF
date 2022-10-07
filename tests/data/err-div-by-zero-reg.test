@@ -4,6 +4,6 @@ mov32 r1, 0
 div32 r0, r1
 exit
 -- result
-0xffffffffffffffff
+0x00
 -- error
 integer division or modulo by zero

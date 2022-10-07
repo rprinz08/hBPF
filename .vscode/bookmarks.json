@@ -1,0 +1,54 @@
+{
+	"files": [
+		{
+			"path": "source/emulator/ebpf/vm_alu.py",
+			"bookmarks": [
+				{
+					"line": 131,
+					"column": 47,
+					"label": ""
+				},
+				{
+					"line": 243,
+					"column": 23,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "source/fpga/math/divide.py",
+			"bookmarks": [
+				{
+					"line": 79,
+					"column": 28,
+					"label": ""
+				},
+				{
+					"line": 87,
+					"column": 20,
+					"label": ""
+				},
+				{
+					"line": 94,
+					"column": 22,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "source/fpga/constants.py",
+			"bookmarks": [
+				{
+					"line": 133,
+					"column": 48,
+					"label": ""
+				},
+				{
+					"line": 161,
+					"column": 20,
+					"label": ""
+				}
+			]
+		}
+	]
+}

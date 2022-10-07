@@ -44,7 +44,7 @@ class Divider(Module):
                     err.eq(0),
                     If(divisor == 0,
                         counter.eq(0),
-                        qr.eq(Cat(1, Replicate(0, dw-1), 1)),
+                        qr.eq(0),
                         err.eq(1)
                     ).Else(
                         counter.eq(dw),
@@ -85,14 +85,14 @@ def div_test(divider, dividend, divisor):
         expected_quotioent = dividend // divisor
     except ZeroDivisionError:
         expected_error = True
-        expected_quotioent = 1
+        expected_quotioent = 0
 
     expected_remainder = 0
     try:
         expected_remainder = dividend % divisor
     except ZeroDivisionError:
         expected_error = True
-        expected_remainder = 1
+        expected_remainder = 0
 
     num_dec_digits = int(math.log10(2**divider.dw)) + 1
     fail_fmt = ("\033[31mFAIL:\033[0m Divide(%%%dd / %%%dd) == q: %%%dd, " +

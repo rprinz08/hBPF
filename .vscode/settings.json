@@ -39,6 +39,12 @@
 
     "terminal.integrated.fontFamily": "'Source Code Pro for Powerline'",
 
+    "code-runner.clearPreviousOutput": true,
+    "code-runner.enableAppInsights": false,
+    "code-runner.runInTerminal": true,
+
+    "git.ignoreLimitWarning": true,
+
     "python.testing.unittestEnabled": true,
     "python.testing.unittestArgs": [
         "-v",
@@ -47,20 +53,9 @@
         "-p",
         "test_*.py"
     ],
+    "python.testing.pytestEnabled": false,
     "python.linting.pylintArgs": [
         "--rcfile",
         "${workspaceRoot}/.vscode/.pylintrc"
-    ],
-    "python.languageServer": "Jedi",
-
-    "code-runner.clearPreviousOutput": true,
-    "code-runner.enableAppInsights": false,
-    "code-runner.runInTerminal": true,
-
-    "telemetry.enableCrashReporter": false,
-    "telemetry.enableTelemetry": false,
-    "python.testing.pytestEnabled": false,
-    "python.testing.nosetestsEnabled": false,
-    "git.ignoreLimitWarning": true,
-    "python.pythonPath": "/usr/bin/python3"
+    ]
 }

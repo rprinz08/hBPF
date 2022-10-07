@@ -128,7 +128,8 @@ class ALU():
 
                 self.vm.regs[insn.destination] &= MAX_UINT32
         except ZeroDivisionError as ex:
-            self.vm.regs[insn.destination] = 0xffffffffffffffff
+            # According to ebpf spec section 1.4.1, destination reg cleared to 0
+            self.vm.regs[insn.destination] = 0x00
             raise
 
     @disassemble("ALU", "or")
@@ -239,7 +240,8 @@ class ALU():
 
                 self.vm.regs[insn.destination] &= MAX_UINT32
         except ZeroDivisionError as ex:
-            self.vm.regs[insn.destination] = 0xffffffffffffffff
+            # According to ebpf spec section 1.4.1, destination reg is unchanged
+            #self.vm.regs[insn.destination] = 0x00
             raise
 
 

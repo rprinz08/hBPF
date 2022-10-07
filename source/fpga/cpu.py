@@ -1273,7 +1273,14 @@ class CPU(Module, AutoCSR):
                         ).Else(
                             If(div64.ack,
                                 If(div64.err,
-                                    regs[dst].eq(0xffffffffffffffff),
+                                    # In case of DIV/MOD errors:
+                                    # According to ebpf spec section 1.4.1,
+                                    # destination cleared to 0 on division by
+                                    # zero. Mod by zero leaves destination
+                                    # unchanged.
+                                    If((opcode & 0xf0) != EBPF_OP_MOD,
+                                        regs[dst].eq(0x00)
+                                    ),
                                     error.eq(1),
                                     halt.eq(1)
                                 ).Else(
