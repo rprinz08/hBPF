@@ -50,7 +50,7 @@ def read(name):
     data = { section: '\n'.join(lines) for (section, lines) in list(section_lines.items()) }
 
     # Resolve links
-    for k in data:
+    for k in list(data):
         if '@' in k:
             del data[k]
 
