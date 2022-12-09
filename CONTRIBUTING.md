@@ -64,7 +64,7 @@ Scan through our [existing issues](https://github.com/rprinz08/hBPF/issues) to f
 
 ## Submitting changes
 
-Please send a [GitHub Pull Request to hBPF](https://github.com/rprinz08/hbpf/pull/new/master) with a clear list of what
+Please send a [GitHub Pull Request to hBPF](https://github.com/rprinz08/hbpf/pull/new/main) with a clear list of what
 you've done (read more about [pull requests](http://help.github.com/pull-requests/)).
 
 When you send a pull request, we would be very happy if you
@@ -119,14 +119,14 @@ Sometimes (e.g. for larger features or refactorings) it might
 be better to use branches. Make a new branch to work on each
 of your tasks, and then push it to GitHub and create a **pull
 request** once you have it done. The purpose of using
-branches is to avoid messing up with the master branch.
+branches is to avoid messing up with the main branch.
 
 #### How to use branch to collaborate
 
-* Update your master branch using:
+* Update your main branch using:
 
     ```
-    $ git pull origin master
+    $ git pull origin main
     ```
 
 * Create a new branch using:
@@ -143,11 +143,11 @@ branches is to avoid messing up with the master branch.
     e.g. git checkout new-feature-xyz
     ```
 
-* After you complete the task, switch to your master branch
+* After you complete the task, switch to your main branch
 using:
 
     ```
-    $ git checkout master
+    $ git checkout main
     ```
 
 * Push your branch using:
@@ -156,7 +156,7 @@ using:
     $ git push origin <BRANCH NAME>
     ```
 
-* Go to GitHub and create a pull request. Wait for the pull-request to be reviewed and merge the branch to master.
+* Go to GitHub and create a pull request. Wait for the pull-request to be reviewed and merge the branch to main.
 
 
 ## Coding conventions

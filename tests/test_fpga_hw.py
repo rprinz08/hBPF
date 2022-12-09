@@ -81,6 +81,7 @@ class TestFPGA_HW(unittest.TestCase):
         debug = int(config_arg.get("DEBUG", "0"), 0) > 0
 
         # Show current configuration.
+        print()
         print("-"*50)
         print("Note: Be sure to configure '{}' ".format(__file__))
         print("to load the right configuration file for your target. Current ")
