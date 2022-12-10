@@ -100,6 +100,21 @@ $ pip3 install --user colour_runner
 $ pip3 install --user git+https://github.com/javawizard/parcon
 ```
 
+*Note: Included submodule `ubpf` requires Python Parcon module. Dont install Parcon via
+`pip3 install --user parcon` but install directly from git via
+`pip3 install --user git+https://github.com/javawizard/parcon` as shown
+above.*
+
+*Note: Depending on your installed Python version (e.g. > 3.7) there might be
+an issue with Parcon module from git repo. In this case you will get
+`dummy_threading` errors when building. There is a
+[pull request #22](https://github.com/javawizard/parcon/pull/22) which
+fixes this. Alternatively you can install Parcon with:*
+
+```bash
+$ pip3 install --user git+https://github.com/rprinz08/parcon
+```
+
 ```bash
 # Install rust - needed to compile tools
 # See additional infos at:
