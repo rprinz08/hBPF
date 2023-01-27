@@ -3,6 +3,8 @@
 S=`basename $0`
 P="$( dirname "$( readlink -f "$0" )" )"
 F="prime"
+objdump="llvm-objdump"
+objcopy="llvm-objcopy"
 
 clang \
 	-target bpf \
@@ -12,13 +14,13 @@ clang \
 
 #readelf -x .text "${F}.o"
 
-llvm-objdump-6.0 \
-	-disassemble \
+$objdump \
+	--disassemble \
 	"${F}.o" > "${F}.lst"
 
-llvm-objcopy-6.0 \
+$objcopy \
 	-O binary \
-	--only-keep=.text \
+	--only-section=.text \
 	"${F}.o" "${F}.bin"
 chmod 644 "${F}.bin"
 
