@@ -83,7 +83,8 @@ corresponding steps or packages.
 
 ```bash
 # Install system dependencies (assuming Debian based distro)
-$ sudo apt install git curl clang python3-pip make xxd libpcap0.8-dev openocd
+$ sudo apt install git curl clang llvm python3-pip make xxd \
+                   libpcap0.8-dev libbpf-dev openocd
 # If you prefer 'hexdump' over of 'xxd'...
 $ sudo apt install bsdmainutils
 ```
