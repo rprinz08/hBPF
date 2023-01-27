@@ -61,6 +61,8 @@ class CallHandler(Module):
 
 ## Usage
 
+### Gateware
+
 To use this call-helper, in your designs top module, create an instance and provide it to the hBPF CPU constructor.
 
 ```python
@@ -83,6 +85,25 @@ call 1
 
 If selected function is not implemented, the call-handler signals this by setting the `err` signal high. This halts program execution by setting CPUs signals `halt` and `error` high.
 
+### Firmware
+
+To call a distinct call handler from an assembler program
+just set the input registers and use the `call` opcode
+with the number of the helper function to call as
+argument. After the call returns the possible result is
+available in register R0.
+
+To call a helper function from C
+
 ## Examples
 
-Additional examples can be found in this project [here](../source/fpga/hw/arty-s7-50/call_handler.py) or [here](../source/fpga/hw/arty-s7-50-nic/call_handler.py).
+Additional examples can be found have a look at the
+documented sample [here](../development/C/call.c).
+
+* Gateware
+
+  * [here](../source/fpga/hw/arty-s7-50/call_handler.py) or [here](../source/fpga/hw/arty-s7-50-nic/call_handler.py).
+
+* C
+
+  * [here](../development/C/call.c)
